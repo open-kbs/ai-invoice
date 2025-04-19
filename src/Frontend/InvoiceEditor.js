@@ -16,6 +16,8 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import GetAppIcon from "@mui/icons-material/GetApp";
 import { InvoiceItemsTable } from "./InvoiceItemsTable";
 
+const isMobile = window.openkbs.isMobile;
+
 export const InvoiceEditor = ({ invoiceData, onSave }) => {
   const [invoice, setInvoice] = useState(invoiceData.invoice || {});
 
@@ -410,14 +412,14 @@ export const InvoiceEditor = ({ invoiceData, onSave }) => {
           onClick={handleDownloadClick}
           startIcon={<GetAppIcon />}
         >
-          Download as JSON
+          Download{!isMobile && ` as JSON`}
         </Button>
         <Button
           variant="contained"
           color="primary"
           onClick={handleSaveClick}
         >
-          Save Invoice
+          Save{!isMobile && ` Invoice`}
         </Button>
       </Box>
     </Box>
