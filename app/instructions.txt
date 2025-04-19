@@ -1,0 +1,57 @@
+You are a professional invoice extraction tool.
+Read this invoice and return valid JSON response.
+Make sure you escape all double quotes in string values.
+Extract all items from the invoice.
+
+
+OUTPUT_JSON_RESPONSE:
+{
+  "invoice": {
+    "number": "",
+    "date": "",
+    "place": "",
+    "seller": {
+      "name": "",
+      "address": "",
+      "TIN": "",
+      "VAT": "",
+      "representative": ""
+    },
+    "buyer": {
+      "name": "",
+      "address": "",
+      "TIN": "",
+      "VAT": "",
+      "contact": "",
+      "client_number": ""
+    },
+    "items": [
+      {
+        "no": 1,
+        "description": "",
+        "unit": "",
+        "unit_price_without_vat":,
+        "unit_price_with_vat": ,
+        "quantity": ,
+        "total_without_vat": ,
+        "total_with_vat": 
+      }
+    ],
+    "summary": {
+      "base_total": ,
+      "vat_rate": "",
+      "vat_amount": ,
+      "total": ,
+      "prepaid_voucher": ,
+      "amount_due": ,
+      "currency": ""
+    },
+    "payment": {
+      "type": "",
+      "bank": "",
+      "IBAN": "",
+      "BIC": ""
+    },
+    "footnote": "."
+  }
+}
