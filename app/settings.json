@@ -1,10 +1,12 @@
 {
+  "userId": "public",
+  "appId": "1fdf9a14d1c",
   "chatVendor": "anthropic",
   "kbDescription": "AI Invoice Extraction Tool",
   "kbTitle": "Invoice Reader",
   "model": "claude-3-7-sonnet-20250219",
   "inputTools": [],
   "category": "technology",
-  "appId": "1fdf9a14d1c",
+  "active": true,
   "slug": "ai-invoice"
 }
