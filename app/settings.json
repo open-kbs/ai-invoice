@@ -7,6 +7,9 @@
   "model": "claude-3-7-sonnet-20250219",
   "inputTools": [],
   "category": "technology",
+  "customizationPrompts": [
+    "Add barcode item field to this invoice processing agent"
+  ],
   "active": true,
   "slug": "ai-invoice"
 }
