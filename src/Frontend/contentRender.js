@@ -71,7 +71,7 @@ const flattenInvoice = (invoice) => {
     paymentBIC: invoice.payment?.BIC || '',
     
     // System fields
-    itemId: invoice.itemId,
+    itemId: invoice.number,
     items: invoice.items || []
   };
   
@@ -81,7 +81,7 @@ const flattenInvoice = (invoice) => {
 // Function to flatten invoice item
 const flattenInvoiceItem = (item, invoiceId) => {
   return {
-    itemId: item.itemId,
+    itemId: invoiceId,
     invoiceId: invoiceId,
     itemNumber: item.no || 0,
     itemDescription: item.description || '',
@@ -99,11 +99,6 @@ const flattenInvoiceItem = (item, invoiceId) => {
 // Function to save an invoice to the database
 const saveInvoice = async (invoice, itemsAPI, KB, setSystemAlert) => {
   try {
-    // Generate invoice ID if it doesn't exist
-    if (!invoice.itemId) {
-      invoice.itemId = "INV-" + Math.floor(Math.random() * 10000);
-    }
-    
     // Add timestamp
     const timestamp = new Date().getTime();
     invoice.createdAt = invoice.createdAt || timestamp;
@@ -116,7 +111,7 @@ const saveInvoice = async (invoice, itemsAPI, KB, setSystemAlert) => {
     
     // Save the main invoice record
     await itemsAPI.createItem({
-      itemId: invoice.itemId,
+      itemId: invoice.number,
       itemType: 'invoice',
       KBData: KB,
       attributes: [
@@ -153,25 +148,21 @@ const saveInvoice = async (invoice, itemsAPI, KB, setSystemAlert) => {
     // Save each invoice item
     if (invoice.items && invoice.items.length > 0) {
       for (const item of invoice.items) {
-        // Generate item ID if it doesn't exist
-        if (!item.itemId) {
-          item.itemId = `ITEM-${Math.floor(Math.random() * 10000)}-${timestamp}`;
-        }
-        
+
         // Add relation to parent invoice and timestamps
-        item.invoiceId = invoice.itemId;
+        item.invoiceId = invoice.number;
         item.createdAt = item.createdAt || timestamp;
         item.updatedAt = timestamp;
         
         // Flatten the item for storage
-        const flatItem = flattenInvoiceItem(item, invoice.itemId);
+        const flatItem = flattenInvoiceItem(item, invoice.number);
         flatItem.createdAt = item.createdAt;
         flatItem.updatedAt = item.updatedAt;
 
         try {
           // Save the invoice item
-          await itemsAPI.createItem({
-            itemId: item.itemId,
+          itemsAPI.createItem({
+            itemId: `${invoice.number}_${item.no}`,
             itemType: 'invoiceItem',
             KBData: KB,
             attributes: [
