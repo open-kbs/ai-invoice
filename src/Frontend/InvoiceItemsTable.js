@@ -26,7 +26,7 @@ import AddIcon from "@mui/icons-material/Add";
 export const InvoiceItemsTable = ({ items = [], onItemsChange }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  
+
   const [editableItems, setEditableItems] = useState(items);
 
   const handleItemChange = (index, field, value) => {
@@ -35,7 +35,7 @@ export const InvoiceItemsTable = ({ items = [], onItemsChange }) => {
       ...newItems[index],
       [field]: value
     };
-    
+
     setEditableItems(newItems);
     onItemsChange(newItems);
   };
@@ -51,7 +51,7 @@ export const InvoiceItemsTable = ({ items = [], onItemsChange }) => {
       total_without_vat: "",
       total_with_vat: ""
     };
-    
+
     const newItems = [...editableItems, newItem];
     setEditableItems(newItems);
     onItemsChange(newItems);
@@ -59,13 +59,13 @@ export const InvoiceItemsTable = ({ items = [], onItemsChange }) => {
 
   const handleDeleteItem = (index) => {
     const newItems = editableItems.filter((_, i) => i !== index);
-    
+
     // Renumber the items
     const renumberedItems = newItems.map((item, i) => ({
       ...item,
       no: i + 1
     }));
-    
+
     setEditableItems(renumberedItems);
     onItemsChange(renumberedItems);
   };
@@ -81,7 +81,7 @@ export const InvoiceItemsTable = ({ items = [], onItemsChange }) => {
         { id: "actions", label: "", width: "40px" }
       ];
     }
-    
+
     return [
       { id: "no", label: "#", width: "30px" },
       { id: "description", label: "Description", width: "30%" },
@@ -100,205 +100,205 @@ export const InvoiceItemsTable = ({ items = [], onItemsChange }) => {
   // Mobile Card View
   const renderMobileCards = () => {
     return (
-      <Stack spacing={2}>
-        {editableItems.map((item, index) => (
-          <Card key={index} variant="outlined" sx={{ position: 'relative' }}>
-            <CardContent sx={{ pb: 1 }}>
-              <Box sx={{ position: 'absolute', top: 8, right: 8 }}>
-                <IconButton 
-                  size="small" 
-                  color="error" 
-                  onClick={() => handleDeleteItem(index)}
-                >
-                  <DeleteIcon fontSize="small" />
-                </IconButton>
-              </Box>
-              
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                Item #{item.no}
-              </Typography>
-              
-              <TextField
-                fullWidth
-                label="Description"
-                variant="outlined"
-                size="small"
-                value={item.description || ""}
-                onChange={(e) => handleItemChange(index, "description", e.target.value)}
-                sx={{ mb: 2 }}
-              />
-              
-              <Grid container spacing={2}>
-                <Grid item xs={6}>
+        <Stack spacing={2}>
+          {editableItems.map((item, index) => (
+              <Card key={index} variant="outlined" sx={{ position: 'relative' }}>
+                <CardContent sx={{ pb: 1 }}>
+                  <Box sx={{ position: 'absolute', top: 8, right: 8 }}>
+                    <IconButton
+                        size="small"
+                        color="error"
+                        onClick={() => handleDeleteItem(index)}
+                    >
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
+                  </Box>
+
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                    Item #{item.no}
+                  </Typography>
+
                   <TextField
-                    fullWidth
-                    label="Unit"
-                    variant="outlined"
-                    size="small"
-                    value={item.unit || ""}
-                    onChange={(e) => handleItemChange(index, "unit", e.target.value)}
+                      fullWidth
+                      label="Description"
+                      variant="outlined"
+                      size="small"
+                      value={item.description !== undefined ? item.description : ""}
+                      onChange={(e) => handleItemChange(index, "description", e.target.value)}
+                      sx={{ mb: 2 }}
                   />
-                </Grid>
-                <Grid item xs={6}>
-                  <TextField
-                    fullWidth
-                    label="Quantity"
-                    variant="outlined"
-                    size="small"
-                    value={item.quantity || ""}
-                    onChange={(e) => handleItemChange(index, "quantity", e.target.value)}
-                  />
-                </Grid>
-              </Grid>
-              
-              <Divider sx={{ my: 2 }} />
-              
-              <Grid container spacing={2}>
-                <Grid item xs={6}>
-                  <TextField
-                    fullWidth
-                    label="Unit Price (excl VAT)"
-                    variant="outlined"
-                    size="small"
-                    value={item.unit_price_without_vat || ""}
-                    onChange={(e) => handleItemChange(index, "unit_price_without_vat", e.target.value)}
-                  />
-                </Grid>
-                <Grid item xs={6}>
-                  <TextField
-                    fullWidth
-                    label="Unit Price (incl VAT)"
-                    variant="outlined"
-                    size="small"
-                    value={item.unit_price_with_vat || ""}
-                    onChange={(e) => handleItemChange(index, "unit_price_with_vat", e.target.value)}
-                  />
-                </Grid>
-              </Grid>
-              
-              <Divider sx={{ my: 2 }} />
-              
-              <Grid container spacing={2}>
-                <Grid item xs={6}>
-                  <TextField
-                    fullWidth
-                    label="Total (excl VAT)"
-                    variant="outlined"
-                    size="small"
-                    value={item.total_without_vat || ""}
-                    onChange={(e) => handleItemChange(index, "total_without_vat", e.target.value)}
-                  />
-                </Grid>
-                <Grid item xs={6}>
-                  <TextField
-                    fullWidth
-                    label="Total (incl VAT)"
-                    variant="outlined"
-                    size="small"
-                    value={item.total_with_vat || ""}
-                    onChange={(e) => handleItemChange(index, "total_with_vat", e.target.value)}
-                  />
-                </Grid>
-              </Grid>
-            </CardContent>
-          </Card>
-        ))}
-      </Stack>
+
+                  <Grid container spacing={2}>
+                    <Grid item xs={6}>
+                      <TextField
+                          fullWidth
+                          label="Unit"
+                          variant="outlined"
+                          size="small"
+                          value={item.unit !== undefined ? item.unit : ""}
+                          onChange={(e) => handleItemChange(index, "unit", e.target.value)}
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                          fullWidth
+                          label="Quantity"
+                          variant="outlined"
+                          size="small"
+                          value={item.quantity !== undefined ? item.quantity : ""}
+                          onChange={(e) => handleItemChange(index, "quantity", e.target.value)}
+                      />
+                    </Grid>
+                  </Grid>
+
+                  <Divider sx={{ my: 2 }} />
+
+                  <Grid container spacing={2}>
+                    <Grid item xs={6}>
+                      <TextField
+                          fullWidth
+                          label="Unit Price (excl VAT)"
+                          variant="outlined"
+                          size="small"
+                          value={item.unit_price_without_vat !== undefined ? item.unit_price_without_vat : ""}
+                          onChange={(e) => handleItemChange(index, "unit_price_without_vat", e.target.value)}
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                          fullWidth
+                          label="Unit Price (incl VAT)"
+                          variant="outlined"
+                          size="small"
+                          value={item.unit_price_with_vat !== undefined ? item.unit_price_with_vat : ""}
+                          onChange={(e) => handleItemChange(index, "unit_price_with_vat", e.target.value)}
+                      />
+                    </Grid>
+                  </Grid>
+
+                  <Divider sx={{ my: 2 }} />
+
+                  <Grid container spacing={2}>
+                    <Grid item xs={6}>
+                      <TextField
+                          fullWidth
+                          label="Total (excl VAT)"
+                          variant="outlined"
+                          size="small"
+                          value={item.total_without_vat !== undefined ? item.total_without_vat : ""}
+                          onChange={(e) => handleItemChange(index, "total_without_vat", e.target.value)}
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                          fullWidth
+                          label="Total (incl VAT)"
+                          variant="outlined"
+                          size="small"
+                          value={item.total_with_vat !== undefined ? item.total_with_vat : ""}
+                          onChange={(e) => handleItemChange(index, "total_with_vat", e.target.value)}
+                      />
+                    </Grid>
+                  </Grid>
+                </CardContent>
+              </Card>
+          ))}
+        </Stack>
     );
   };
 
   // Desktop Table View
   const renderDesktopTable = () => {
     return (
-      <TableContainer component={Paper}>
-        <Table size="small" padding="none" sx={{ '& .MuiTableCell-root': { padding: '4px' } }}>
-          <TableHead>
-            <TableRow>
-              {columns.map((column) => (
-                <TableCell 
-                  key={column.id} 
-                  style={{ width: column.width }}
-                  align={column.id === "no" ? "center" : "left"}
-                >
-                  {column.label}
-                </TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {editableItems.map((item, index) => (
-              <TableRow key={index}>
-                {columns.map((column) => {
-                  if (column.id === "actions") {
-                    return (
-                      <TableCell key={column.id} sx={{ padding: '0 4px' }}>
-                        <IconButton 
-                          size="small" 
-                          color="error" 
-                          onClick={() => handleDeleteItem(index)}
-                        >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </TableCell>
-                    );
-                  }
-                  
-                  if (column.id === "no") {
-                    return (
-                      <TableCell key={column.id} align="center">
-                        {item.no}
-                      </TableCell>
-                    );
-                  }
-                  
-                  if (column.id in item) {
-                    return (
-                      <TableCell key={column.id}>
-                        <TextField
-                          fullWidth
-                          variant="outlined"
-                          size="small"
-                          value={item[column.id] || ""}
-                          onChange={(e) => 
-                            handleItemChange(index, column.id, e.target.value)
-                          }
-                          InputProps={{
-                            sx: { 
-                              '& .MuiOutlinedInput-input': {
-                                padding: '6px 8px',
-                                fontSize: '0.9rem'
-                              }
-                            }
-                          }}
-                        />
-                      </TableCell>
-                    );
-                  }
-                  
-                  return <TableCell key={column.id}></TableCell>;
-                })}
+        <TableContainer component={Paper}>
+          <Table size="small" padding="none" sx={{ '& .MuiTableCell-root': { padding: '4px' } }}>
+            <TableHead>
+              <TableRow>
+                {columns.map((column) => (
+                    <TableCell
+                        key={column.id}
+                        style={{ width: column.width }}
+                        align={column.id === "no" ? "center" : "left"}
+                    >
+                      {column.label}
+                    </TableCell>
+                ))}
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+            </TableHead>
+            <TableBody>
+              {editableItems.map((item, index) => (
+                  <TableRow key={index}>
+                    {columns.map((column) => {
+                      if (column.id === "actions") {
+                        return (
+                            <TableCell key={column.id} sx={{ padding: '0 4px' }}>
+                              <IconButton
+                                  size="small"
+                                  color="error"
+                                  onClick={() => handleDeleteItem(index)}
+                              >
+                                <DeleteIcon fontSize="small" />
+                              </IconButton>
+                            </TableCell>
+                        );
+                      }
+
+                      if (column.id === "no") {
+                        return (
+                            <TableCell key={column.id} align="center">
+                              {item.no}
+                            </TableCell>
+                        );
+                      }
+
+                      if (column.id in item) {
+                        return (
+                            <TableCell key={column.id}>
+                              <TextField
+                                  fullWidth
+                                  variant="outlined"
+                                  size="small"
+                                  value={item[column.id] !== undefined ? item[column.id] : ""}
+                                  onChange={(e) =>
+                                      handleItemChange(index, column.id, e.target.value)
+                                  }
+                                  InputProps={{
+                                    sx: {
+                                      '& .MuiOutlinedInput-input': {
+                                        padding: '6px 8px',
+                                        fontSize: '0.9rem'
+                                      }
+                                    }
+                                  }}
+                              />
+                            </TableCell>
+                        );
+                      }
+
+                      return <TableCell key={column.id}></TableCell>;
+                    })}
+                  </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
     );
   };
 
   return (
-    <Box>
-      {isMobile ? renderMobileCards() : renderDesktopTable()}
-      
-      <Box sx={{ mt: 2, display: "flex", justifyContent: "flex-end" }}>
-        <Button
-          variant="outlined"
-          startIcon={<AddIcon />}
-          onClick={handleAddItem}
-          size={isMobile ? "small" : "medium"}
-        >
-          Add Item
-        </Button>
+      <Box>
+        {isMobile ? renderMobileCards() : renderDesktopTable()}
+
+        <Box sx={{ mt: 2, display: "flex", justifyContent: "flex-end" }}>
+          <Button
+              variant="outlined"
+              startIcon={<AddIcon />}
+              onClick={handleAddItem}
+              size={isMobile ? "small" : "medium"}
+          >
+            Add Item
+          </Button>
+        </Box>
       </Box>
-    </Box>
   );
 };
