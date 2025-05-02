@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Card,
@@ -13,13 +13,24 @@ import {
   Divider
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import GetAppIcon from "@mui/icons-material/GetApp";
 import { InvoiceItemsTable } from "./InvoiceItemsTable";
 
 const isMobile = window.openkbs.isMobile;
 
 export const InvoiceEditor = ({ invoiceData, onSave }) => {
-  const [invoice, setInvoice] = useState(invoiceData.invoice || {});
+  // Initialize state with existing invoice data or empty object
+  const [invoice, setInvoice] = useState(() => {
+    // Keep the itemId if it exists
+    const initialInvoice = invoiceData.invoice || {};
+    return initialInvoice;
+  });
+
+  // Recalculate totals whenever invoice items change
+  useEffect(() => {
+    if (invoice.items && invoice.items.length > 0) {
+      calculateTotals();
+    }
+  }, [invoice.items]);
 
   const handleBasicInfoChange = (e) => {
     const { name, value } = e.target;
@@ -65,8 +76,58 @@ export const InvoiceEditor = ({ invoiceData, onSave }) => {
       items: newItems
     });
   };
+  
+  const calculateTotals = () => {
+    const items = invoice.items || [];
+    const calculatedSummary = {
+      base_total: 0,
+      vat_amount: 0,
+      total: 0
+    };
+    
+    if (items.length > 0) {
+      // Calculate totals based on invoice items
+      calculatedSummary.base_total = items.reduce((sum, item) => {
+        const itemTotal = parseFloat(item.total_without_vat) || 0;
+        return sum + itemTotal;
+      }, 0);
+      
+      calculatedSummary.total = items.reduce((sum, item) => {
+        const itemTotal = parseFloat(item.total_with_vat) || 0;
+        return sum + itemTotal;
+      }, 0);
+      
+      calculatedSummary.vat_amount = calculatedSummary.total - calculatedSummary.base_total;
+      
+      // Calculate VAT rate if possible
+      if (calculatedSummary.base_total > 0) {
+        calculatedSummary.vat_rate = (calculatedSummary.vat_amount / calculatedSummary.base_total * 100).toFixed(2);
+      }
+    }
+    
+    const currentSummary = invoice.summary || {};
+    
+    // Update the summary only if values are not manually set
+    setInvoice(prev => ({
+      ...prev,
+      summary: {
+        ...currentSummary,
+        base_total: currentSummary.base_total || calculatedSummary.base_total.toFixed(2),
+        vat_amount: currentSummary.vat_amount || calculatedSummary.vat_amount.toFixed(2),
+        total: currentSummary.total || calculatedSummary.total.toFixed(2),
+        vat_rate: currentSummary.vat_rate || calculatedSummary.vat_rate || "",
+        amount_due: currentSummary.amount_due || calculatedSummary.total.toFixed(2),
+        currency: currentSummary.currency || "USD",
+        prepaid_voucher: currentSummary.prepaid_voucher || "0.00"
+      }
+    }));
+  };
 
   const handleSaveClick = () => {
+    // Make sure we have the latest totals calculated
+    calculateTotals();
+    
+    // Need to use the current state reference to ensure we have the latest data
     onSave({
       invoice: invoice
     });
