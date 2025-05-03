@@ -107,7 +107,7 @@ const saveInvoice = async (invoice, itemsAPI, KB, setSystemAlert) => {
     const flatInvoice = flattenInvoice(invoice);
     flatInvoice.createdAt = invoice.createdAt;
     flatInvoice.updatedAt = invoice.updatedAt;
-    
+
     // Save the main invoice record
     await itemsAPI.createItem({
       itemId: invoice.number,
@@ -143,7 +143,7 @@ const saveInvoice = async (invoice, itemsAPI, KB, setSystemAlert) => {
       ],
       item: flatInvoice
     });
-    
+
     // Save each invoice item
     if (invoice.items && invoice.items.length > 0) {
       for (const item of invoice.items) {
@@ -162,7 +162,7 @@ const saveInvoice = async (invoice, itemsAPI, KB, setSystemAlert) => {
           // Save the invoice item
           itemsAPI.createItem({
             itemId: `${invoice.number}_${item.no}`,
-            itemType: 'invoiceItem',
+            itemType: 'item',
             KBData: KB,
             attributes: [
               { attrName: 'itemNumber', attrType: 'integer5' },

@@ -472,7 +472,7 @@ export const InvoiceEditor = ({ invoiceData, onSave }) => {
               color="secondary"
               onClick={handleDownloadClick}
           >
-            Download{!isMobile && ` as JSON`}
+            Export{!isMobile && ` Invoices`}
           </Button>
           <Button
               variant="contained"
