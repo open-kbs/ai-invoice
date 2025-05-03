@@ -12,6 +12,9 @@
   ],
   "active": true,
   "slug": "ai-invoice",
+  "embeddingModel": "none",
+  "embeddingDimension": "none",
+  "searchEngine": "none",
   "itemTypes": {
     "invoice": {
       "friendlyName": "Invoice",

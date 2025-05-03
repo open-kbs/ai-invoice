@@ -9,7 +9,7 @@ export const getActions = (meta) => [
       return {
         type: "SAVE_INVOICE_SUCCESS",
         message: `Invoice with ${requestData?.invoice?.items?.length} items has been successfully saved.`,
-        nextStep: `Navigate to the Database section to view/export your invoices.`,
+        nextStep: `Navigate to the Database section to view your invoices.`,
         ...meta
       };
     } catch (e) {
