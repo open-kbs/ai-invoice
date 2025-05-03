@@ -133,24 +133,6 @@ export const InvoiceEditor = ({ invoiceData, onSave }) => {
     });
   };
 
-  const handleDownloadClick = () => {
-    // Create a JSON blob from the invoice data
-    const invoiceJSON = JSON.stringify({ invoice }, null, 2);
-    const blob = new Blob([invoiceJSON], { type: "application/json" });
-
-    // Create a download link and trigger the download
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `invoice-${invoice.number || "download"}.json`;
-    document.body.appendChild(link);
-    link.click();
-
-    // Clean up
-    URL.revokeObjectURL(url);
-    document.body.removeChild(link);
-  };
-
   return (
       <Box sx={{ width: "100%", mt: 2 }}>
         <Typography variant="h5" gutterBottom>
@@ -469,17 +451,10 @@ export const InvoiceEditor = ({ invoiceData, onSave }) => {
         <Box sx={{ mt: 3, mb: 2, display: "flex", justifyContent: "flex-end", gap: 2 }}>
           <Button
               variant="contained"
-              color="secondary"
-              onClick={handleDownloadClick}
-          >
-            Export{!isMobile && ` Invoices`}
-          </Button>
-          <Button
-              variant="contained"
               color="primary"
               onClick={handleSaveClick}
           >
-            Save{!isMobile && ` Invoice`}
+            Save
           </Button>
         </Box>
       </Box>
