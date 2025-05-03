@@ -14,7 +14,7 @@
   "slug": "ai-invoice",
   "embeddingModel": "none",
   "embeddingDimension": "none",
-  "searchEngine": "none",
+  "searchEngine": "",
   "itemTypes": {
     "invoice": {
       "friendlyName": "Invoice",
