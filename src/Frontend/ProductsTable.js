@@ -11,8 +11,7 @@ export const ProductsTable = ({ products, handleClick }) => {
     const columnKeys = Object.keys(products[0]);
     const mobileColumnKeys = ['name', 'price'];
     const capitalizeFirstLetter = (string) => string.charAt(0).toUpperCase() + string.slice(1);
-
-    console.log(products)
+    
     return (
         <TableContainer component={Paper} sx={{ marginTop: 2, maxWidth: '100%', overflowX: 'auto' }}>
             <Table size={isMobile ? "small" : "medium"}>
