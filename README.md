@@ -1,4 +1,5 @@
 # AI Invoice Extraction Tool &middot; [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/open-kbs/{{{openkbs.repo}}}/blob/main/LICENSE)
+
 <table>
   <tr>
     <td>
