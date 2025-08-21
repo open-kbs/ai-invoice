@@ -510,12 +510,29 @@ export const DocumentEditor = ({ documentData, onSave }) => {
           <Grid container spacing={2}>
             {document.Accountings?.[0]?.AccountingDetails?.map((detail, index) => (
               <Grid item xs={12} sm={4} key={index}>
-                <Card variant="outlined">
+                <Card variant="outlined" sx={{ 
+                  borderColor: detail.Direction === 'Debit' ? 'warning.main' : 'success.main',
+                  borderWidth: 2
+                }}>
                   <CardContent>
+                    <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+                      <Typography variant="h6" color={detail.Direction === 'Debit' ? 'warning.main' : 'success.main'}>
+                        {detail.AccountNumber}
+                      </Typography>
+                      <Typography variant="caption" sx={{ 
+                        px: 1, 
+                        py: 0.5, 
+                        borderRadius: 1,
+                        backgroundColor: detail.Direction === 'Debit' ? 'warning.light' : 'success.light',
+                        color: 'white'
+                      }}>
+                        {detail.Direction}
+                      </Typography>
+                    </Box>
                     <Typography variant="body2" color="text.secondary">
-                      {detail.Description || `Account ${detail.AccountNumber}`} ({detail.Direction})
+                      {detail.Description || `Account ${detail.AccountNumber}`}
                     </Typography>
-                    <Typography variant="h6">
+                    <Typography variant="h6" sx={{ mt: 1 }}>
                       {parseFloat(detail.Amount).toFixed(2)} {currency}
                     </Typography>
                   </CardContent>
@@ -523,6 +540,38 @@ export const DocumentEditor = ({ documentData, onSave }) => {
               </Grid>
             ))}
           </Grid>
+          
+          {/* Account Summary */}
+          <Box sx={{ mt: 3, p: 2, backgroundColor: 'grey.50', borderRadius: 1 }}>
+            <Typography variant="subtitle2" gutterBottom>
+              Account Summary:
+            </Typography>
+            <Box display="flex" flexWrap="wrap" gap={1}>
+              {document.Accountings?.[0]?.AccountingDetails?.map((detail, index) => (
+                <Box 
+                  key={index}
+                  sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center',
+                    gap: 0.5,
+                    px: 1.5,
+                    py: 0.5,
+                    backgroundColor: 'white',
+                    borderRadius: 1,
+                    border: '1px solid',
+                    borderColor: 'divider'
+                  }}
+                >
+                  <Typography variant="body2" fontWeight="bold">
+                    {detail.AccountNumber}:
+                  </Typography>
+                  <Typography variant="body2">
+                    {detail.Description}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
+          </Box>
         </AccordionDetails>
       </Accordion>
 

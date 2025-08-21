@@ -135,34 +135,43 @@ const saveChartOfAccounts = async (chart) => {
   try {
     const encryptedChart = await openkbs.encrypt(JSON.stringify(chart));
     
-    // First try to update existing
-    try {
-      await openkbs.items({
-        action: 'updateItem',
-        itemType: 'chartOfAccounts',
-        itemId: 'chartOfAccounts',
-        item: {
-          Id: 'chartOfAccounts',
-          chart: encryptedChart
-        }
-      });
-      return true;
-    } catch (updateError) {
-      // If update fails, create new
-      await openkbs.items({
-        action: 'createItem',
-        itemType: 'chartOfAccounts',
-        attributes: [
-          { attrType: "itemId", attrName: "Id", encrypted: false },
-          { attrType: "body", attrName: "chart", encrypted: true }
-        ],
-        item: {
-          Id: 'chartOfAccounts',
-          chart: encryptedChart
-        }
-      });
-      return true;
+    // First check if chart exists
+    const existing = await openkbs.items({
+      action: 'fetchItems',
+      itemType: 'chartOfAccounts',
+      limit: 1
+    });
+    
+    if (existing.items && existing.items.length > 0) {
+      // Update existing - need to delete and recreate
+      try {
+        // Delete old version
+        await openkbs.items({
+          action: 'deleteItem',
+          itemType: 'chartOfAccounts',
+          itemId: 'chartOfAccounts'
+        });
+      } catch (deleteError) {
+        console.log("Could not delete old chart, will try to create new");
+      }
     }
+    
+    // Create new/updated chart
+    await openkbs.items({
+      action: 'createItem',
+      itemType: 'chartOfAccounts',
+      attributes: [
+        { attrType: "itemId", attrName: "Id", encrypted: false },
+        { attrType: "body", attrName: "chart", encrypted: true }
+      ],
+      item: {
+        Id: 'chartOfAccounts',
+        chart: encryptedChart
+      }
+    });
+    
+    console.log("Chart of accounts saved successfully");
+    return true;
   } catch (e) {
     console.error("Error saving chart of accounts:", e);
     return false;
