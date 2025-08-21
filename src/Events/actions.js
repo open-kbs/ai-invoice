@@ -147,6 +147,67 @@ export const getActions = (meta) => [
       };
     }
   }],
+  // List all saved documents
+  [/\/listDocuments\(\)/, async (match) => {
+    try {
+      // Fetch all documents from storage
+      const response = await openkbs.items({
+        action: 'fetchItems',
+        itemType: 'document',
+        limit: 100  // Adjust as needed
+      });
+      
+      if (!response.items || response.items.length === 0) {
+        return {
+          type: "DOCUMENTS_LIST",
+          message: "No documents found",
+          data: [],
+          _meta_actions: []  // No LLM interaction needed
+        };
+      }
+      
+      // Decrypt and parse each document
+      const data = await Promise.all(response.items.map(async (item) => {
+        try {
+          const decryptedDoc = await openkbs.decrypt(item.item.document);
+          const parsedDoc = JSON.parse(decryptedDoc);
+          return {
+            id: item.item.Id,
+            documentId: parsedDoc.DocumentId,
+            documentType: parsedDoc.DocumentType,
+            number: parsedDoc.Number,
+            date: parsedDoc.Date,
+            totalAmount: parsedDoc.TotalAmount,
+            sender: parsedDoc.CompanySender?.Name,
+            recipient: parsedDoc.CompanyRecipient?.Name,
+            itemCount: parsedDoc.DocumentDetails?.length || 0,
+            createdAt: item.meta.createdAt,
+            updatedAt: item.meta.updatedAt
+          };
+        } catch (e) {
+          console.error("Error decrypting document:", e);
+          return {
+            id: item.item.Id,
+            error: "Failed to decrypt document"
+          };
+        }
+      }));
+      
+      return {
+        type: "DOCUMENTS_LIST",
+        data,
+        _meta_actions: []  // No LLM interaction needed
+      };
+    } catch (e) {
+      console.error("Error listing documents:", e);
+      return {
+        type: "LIST_DOCUMENTS_FAILED",
+        error: e.message || "Failed to list documents",
+        _meta_actions: []
+      };
+    }
+  }],
+  
   // Get company details and chart of accounts for invoice processing
   [/\/getCompanyDetails\("([^"]*)",\s*"([^"]*)"\)/, async (match, event) => {
     const yourCompanyTaxID = match[1]?.trim();

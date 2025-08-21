@@ -42,10 +42,12 @@ const onRenderChatMessage = async (params) => {
 
   const { content, role } = messages[msgIndex];
   
-  if (role === 'user') return; // use default rendering for user messages
+
   
   // Continue with the JSON extraction
   const jsonResult = extractJSONFromContent(content);
+
+  if (role === 'user' && !jsonResult?.data?.type !== 'SAVE_DOCUMENT_REQUEST') return; // use default rendering for user messages
 
   if (jsonResult) {
     const { data, prefix } = jsonResult;
@@ -56,10 +58,7 @@ const onRenderChatMessage = async (params) => {
       const imageUrl = document.image || data.image;
       const avatarSize = isMobile ? '48px' : '64px';
       
-      // This is already a save request from LLM, it will auto-save via backend
-      const wasAutoSaved = true;
-      
-      // Create the save handler for manual saves after editing
+      // Create the save handler for manual saves after editing  
       const handleSave = async (updatedData) => {
         setBlockingLoading(true);
         try {
@@ -108,73 +107,6 @@ const onRenderChatMessage = async (params) => {
           />
         ),
         prefix && <div style={{ whiteSpace: 'pre-wrap', marginBottom: '10px' }}>{prefix}</div>,
-        wasAutoSaved && (
-          <div style={{ 
-            padding: '10px', 
-            backgroundColor: '#d4edda', 
-            borderRadius: '4px', 
-            marginBottom: '10px',
-            border: '1px solid #28a745'
-          }}>
-            <strong>✓ Document will be automatically saved</strong>
-            <br />
-            <small>ID: {document.DocumentId} | Items: {document.DocumentDetails?.length || 0}</small>
-          </div>
-        ),
-        <DocumentEditor 
-          documentData={document} 
-          onSave={handleSave}
-        />
-      ];
-    }
-    
-    // Check if this is a DOCUMENT_SAVED response from backend
-    if (data.type === 'DOCUMENT_SAVED' && data.documentData) {
-      const document = data.documentData;
-      const avatarSize = isMobile ? '48px' : '64px';
-      
-      // Create the save handler for manual saves after editing
-      const handleSave = async (updatedData) => {
-        setBlockingLoading(true);
-        try {
-          await RequestChatAPI([...messages, {
-            role: 'user',
-            content: JSON.stringify({
-              type: "SAVE_DOCUMENT_REQUEST",
-              document: updatedData.document
-            }),
-            userId: kbUserData().chatUsername,
-            msgId: generateMsgId()
-          }]);
-          
-          setSystemAlert({
-            severity: 'success',
-            message: 'Document saved successfully!'
-          });
-        } catch (e) {
-          console.error("Error in save process:", e);
-          setSystemAlert({
-            severity: 'error',
-            message: 'Failed to save document. Please try again.'
-          });
-        } finally {
-          setBlockingLoading(false);
-        }
-      };
-
-      return [
-        prefix && <div style={{ whiteSpace: 'pre-wrap', marginBottom: '10px' }}>{prefix}</div>,
-        <div style={{ 
-          padding: '10px', 
-          backgroundColor: '#d4edda', 
-          borderRadius: '4px', 
-          marginBottom: '10px',
-          border: '1px solid #28a745'
-        }}>
-          <strong>✓ Document saved successfully</strong>
-          <br />
-          <small>ID: {data.documentId} | Items: {data.itemCount}</small>
-        </div>,
         <DocumentEditor 
           documentData={document} 
           onSave={handleSave}

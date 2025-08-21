@@ -34,7 +34,7 @@ IMPORTANT: Wrap your document output in a SAVE_DOCUMENT_REQUEST structure:
 {
   "type": "SAVE_DOCUMENT_REQUEST",
   "document": {
-  "DocumentId": "123456789_0000000001",  // Format: {Sender_TaxID}_{DocumentNumber}
+    "DocumentId": "123456789_0000000001",  // Format: {Sender_TaxID}_{DocumentNumber}
   "DocumentType": "1",
   "Number": "0000000001",
   "Date": "07/29/2025 12:00:00 AM",
@@ -132,9 +132,16 @@ Description: """
 Returns YourCompany, OtherCompany (with Id, Name, TaxID, VATNumber, isVATRegistered) and ChartOfAccounts.
 """
 
+/listDocuments()
+Description: """
+Lists all saved documents with their basic information (ID, date, amount, companies, etc).
+Returns the list directly without LLM processing.
+"""
+
 /saveDocument(document_json)
 Description: """
 Saves the extracted document to the database. Pass the complete JSON structure.
+Note: Documents are automatically saved when you output them in SAVE_DOCUMENT_REQUEST format.
 """
 
 FIELD DESCRIPTIONS:
