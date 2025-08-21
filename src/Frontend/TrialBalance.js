@@ -65,7 +65,7 @@ export const TrialBalance = ({ data }) => {
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
         <AccountBalanceIcon color="primary" />
         <Typography variant="h5">
-          Trial Balance (Оборотна ведомост)
+          Trial Balance
         </Typography>
       </Box>
       

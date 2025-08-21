@@ -145,7 +145,7 @@ When users ask for financial reports or analysis, use these commands:
    /saveDocument(json) - Saves document (auto-called when you output SAVE_DOCUMENT_REQUEST)
 
 2. FINANCIAL REPORTS:
-   /getTrialBalance() - Trial Balance (Оборотна ведомост) by categories
+   /getTrialBalance() - Trial Balance by categories
    /getIncomeStatement() - Profit & Loss statement showing revenues vs expenses
    /getVATReport() - VAT analysis for tax returns (Input VAT vs Output VAT)
    /getAccountsReport() - Payables/Receivables with aging analysis
@@ -177,7 +177,7 @@ The response is automatically rendered in a beautiful UI.
 
 /getTrialBalance()
 Description: """
-Generates a Trial Balance (Оборотна ведомост) grouped by account categories.
+Generates a Trial Balance grouped by account categories.
 Shows debit, credit, and balance for each account within categories:
 - Assets
 - Liabilities  
@@ -341,26 +341,26 @@ DETAILED REPORT DESCRIPTIONS FOR USER QUERIES:
 When users ask about financial status, reports, or analysis, understand these mappings:
 
 TRIAL BALANCE (/getTrialBalance):
-- Keywords: "trial balance", "оборотна ведомост", "account balances", "debit credit"
+- Keywords: "trial balance", "account balances", "debit credit"
 - Shows: All accounts grouped by category with debit/credit/balance
 - Use when: User wants overview of all accounts
 
 INCOME STATEMENT (/getIncomeStatement):
-- Keywords: "profit", "loss", "P&L", "income", "expenses", "печалба", "загуба"
+- Keywords: "profit", "loss", "P&L", "income", "expenses"
 - Shows: Revenue vs Expenses = Net Income/Loss
 - Use when: User asks about profitability
 
 VAT REPORT (/getVATReport):
-- Keywords: "VAT", "ДДС", "tax", "данък", "VAT return"
+- Keywords: "VAT", "tax", "VAT return"
 - Shows: Input VAT (reclaimable) vs Output VAT (payable)
 - Use when: User needs VAT information for tax returns
 
 ACCOUNTS REPORT (/getAccountsReport):
-- Keywords: "payables", "receivables", "who owes", "what we owe", "aging", "кой дължи"
+- Keywords: "payables", "receivables", "who owes", "what we owe", "aging"
 - Shows: Money owed to suppliers and by customers with age analysis
 - Use when: User asks about debts or credit control
 
 DOCUMENT LIST (/listDocuments):
-- Keywords: "list", "show invoices", "all documents", "покажи фактури"
+- Keywords: "list", "show invoices", "all documents"
 - Shows: All invoices with expandable item details
 - Use when: User wants to see saved documents

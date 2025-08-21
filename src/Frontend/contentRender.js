@@ -4,6 +4,9 @@ import { DocumentEditor } from "./DocumentEditor";
 import { AccountSuggestions } from "./AccountSuggestions";
 import { DocumentsList } from "./DocumentsList";
 import { TrialBalance } from "./TrialBalance";
+import { IncomeStatement } from "./IncomeStatement";
+import { VATReport } from "./VATReport";
+import { AccountsReport } from "./AccountsReport";
 
 const isMobile = window.openkbs.isMobile;
 
@@ -165,7 +168,7 @@ const onRenderChatMessage = async (params) => {
     if (data.type === 'INCOME_STATEMENT' && data.data) {
       return [
         prefix && <div style={{ whiteSpace: 'pre-wrap', marginBottom: '10px' }}>{prefix}</div>,
-        <div>Income Statement Report - Revenue: {data.data.revenue?.total || 0}, Expenses: {data.data.expenses?.total || 0}, Net Income: {data.data.netIncome || 0}</div>
+        <IncomeStatement data={data.data} />
       ];
     }
     
@@ -173,7 +176,7 @@ const onRenderChatMessage = async (params) => {
     if (data.type === 'VAT_REPORT' && data.data) {
       return [
         prefix && <div style={{ whiteSpace: 'pre-wrap', marginBottom: '10px' }}>{prefix}</div>,
-        <div>VAT Report - Input VAT: {data.data.inputVAT || 0}, Output VAT: {data.data.outputVAT || 0}, VAT Payable: {data.data.vatPayable || 0}</div>
+        <VATReport data={data.data} />
       ];
     }
     
@@ -181,7 +184,7 @@ const onRenderChatMessage = async (params) => {
     if (data.type === 'ACCOUNTS_REPORT' && data.data) {
       return [
         prefix && <div style={{ whiteSpace: 'pre-wrap', marginBottom: '10px' }}>{prefix}</div>,
-        <div>Accounts Report - Payables: {data.data.totalPayable || 0}, Receivables: {data.data.totalReceivable || 0}</div>
+        <AccountsReport data={data.data} />
       ];
     }
     
