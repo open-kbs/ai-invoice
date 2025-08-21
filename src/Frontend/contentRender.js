@@ -23,17 +23,31 @@ const extractJSONFromContent = (content) => {
   } catch (e) {
     // Try to extract JSON from text
     try {
-      // Look for JSON pattern in content
-      const jsonMatch = content.match(/(\{[\s\S]*\})/);
-      if (jsonMatch) {
-        const jsonString = escapeNewlines(jsonMatch[0]);
-        const data = JSON.parse(jsonString);
-        let prefix = content.substring(0, content.indexOf(jsonMatch[0])).trim();
-        prefix = prefix.replace(/```json\s*$/i, '').replace(/```\s*$/i, '').trim();
-        return { data, prefix };
+      // Look for JSON pattern in content - handle both single objects and code blocks
+      let jsonString = content;
+      let prefix = "";
+      
+      // Check for code block with json
+      const codeBlockMatch = content.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/);
+      if (codeBlockMatch) {
+        jsonString = codeBlockMatch[1];
+        prefix = content.substring(0, content.indexOf(codeBlockMatch[0])).trim();
+      } else {
+        // Look for JSON pattern in content
+        const jsonMatch = content.match(/(\{[\s\S]*\})/);
+        if (jsonMatch) {
+          jsonString = jsonMatch[0];
+          prefix = content.substring(0, content.indexOf(jsonMatch[0])).trim();
+        }
       }
+      
+      // Parse the JSON
+      const escapedString = escapeNewlines(jsonString);
+      const data = JSON.parse(escapedString);
+      return { data, prefix };
     } catch (error) {
-      console.error("Error extracting JSON:", error);
+      console.error("Error extracting JSON from content:", error);
+      console.log("Content that failed:", content?.substring(0, 200));
     }
   }
   return null;
@@ -50,10 +64,14 @@ const onRenderChatMessage = async (params) => {
   // Continue with the JSON extraction
   const jsonResult = extractJSONFromContent(content);
 
-  if (role === 'user' && !jsonResult?.data?.type !== 'SAVE_DOCUMENT_REQUEST') return; // use default rendering for user messages
+  if (role === 'user') return; // use default rendering for user messages
 
   if (jsonResult) {
     const { data, prefix } = jsonResult;
+    
+    // Debug logging
+    console.log("Extracted JSON type:", data?.type);
+    console.log("Has data field:", !!data?.data);
     
     // Check if this is a SAVE_DOCUMENT_REQUEST
     if (data.type === 'SAVE_DOCUMENT_REQUEST' && data.document) {
@@ -140,6 +158,30 @@ const onRenderChatMessage = async (params) => {
       return [
         prefix && <div style={{ whiteSpace: 'pre-wrap', marginBottom: '10px' }}>{prefix}</div>,
         <TrialBalance data={data.data} />
+      ];
+    }
+    
+    // Check if this is an INCOME_STATEMENT response
+    if (data.type === 'INCOME_STATEMENT' && data.data) {
+      return [
+        prefix && <div style={{ whiteSpace: 'pre-wrap', marginBottom: '10px' }}>{prefix}</div>,
+        <div>Income Statement Report - Revenue: {data.data.revenue?.total || 0}, Expenses: {data.data.expenses?.total || 0}, Net Income: {data.data.netIncome || 0}</div>
+      ];
+    }
+    
+    // Check if this is a VAT_REPORT response
+    if (data.type === 'VAT_REPORT' && data.data) {
+      return [
+        prefix && <div style={{ whiteSpace: 'pre-wrap', marginBottom: '10px' }}>{prefix}</div>,
+        <div>VAT Report - Input VAT: {data.data.inputVAT || 0}, Output VAT: {data.data.outputVAT || 0}, VAT Payable: {data.data.vatPayable || 0}</div>
+      ];
+    }
+    
+    // Check if this is an ACCOUNTS_REPORT response
+    if (data.type === 'ACCOUNTS_REPORT' && data.data) {
+      return [
+        prefix && <div style={{ whiteSpace: 'pre-wrap', marginBottom: '10px' }}>{prefix}</div>,
+        <div>Accounts Report - Payables: {data.data.totalPayable || 0}, Receivables: {data.data.totalReceivable || 0}</div>
       ];
     }
     
