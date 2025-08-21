@@ -145,8 +145,21 @@ Returns YourCompany, OtherCompany (with Id, Name, TaxID, VATNumber, isVATRegiste
 
 /listDocuments()
 Description: """
-Lists all saved documents with their basic information (ID, date, amount, companies, etc).
-Returns the list directly without LLM processing.
+Lists all saved documents with their details including items.
+Returns a nicely formatted list with expandable document cards showing all invoice items.
+The response is automatically rendered in a beautiful UI.
+"""
+
+/getTrialBalance()
+Description: """
+Generates a Trial Balance (Оборотна ведомост) grouped by account categories.
+Shows debit, credit, and balance for each account within categories:
+- Assets
+- Liabilities  
+- Equity
+- Revenue
+- Expenses
+Returns a formatted report with category totals and grand totals.
 """
 
 /getChartOfAccounts()

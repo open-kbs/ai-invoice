@@ -2,6 +2,8 @@ import React, { useEffect, useRef } from "react";
 import Avatar from "@mui/material/Avatar";
 import { DocumentEditor } from "./DocumentEditor";
 import { AccountSuggestions } from "./AccountSuggestions";
+import { DocumentsList } from "./DocumentsList";
+import { TrialBalance } from "./TrialBalance";
 
 const isMobile = window.openkbs.isMobile;
 
@@ -122,6 +124,22 @@ const onRenderChatMessage = async (params) => {
             generateMsgId={generateMsgId}
           />
         )
+      ];
+    }
+    
+    // Check if this is a DOCUMENTS_LIST response
+    if (data.type === 'DOCUMENTS_LIST' && data.data) {
+      return [
+        prefix && <div style={{ whiteSpace: 'pre-wrap', marginBottom: '10px' }}>{prefix}</div>,
+        <DocumentsList documents={data.data} />
+      ];
+    }
+    
+    // Check if this is a TRIAL_BALANCE response
+    if (data.type === 'TRIAL_BALANCE' && data.data) {
+      return [
+        prefix && <div style={{ whiteSpace: 'pre-wrap', marginBottom: '10px' }}>{prefix}</div>,
+        <TrialBalance data={data.data} />
       ];
     }
     

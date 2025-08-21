@@ -475,6 +475,160 @@ export const getActions = (meta) => [
     }
   }],
 
+  // Generate Trial Balance (Oborotna Vedomost) grouped by categories
+  [/\/getTrialBalance\(\)/, async (match) => {
+    try {
+      // Fetch all documents
+      const response = await openkbs.items({
+        action: 'fetchItems',
+        itemType: 'document',
+        limit: 1000
+      });
+      
+      if (!response.items || response.items.length === 0) {
+        return {
+          type: "TRIAL_BALANCE",
+          message: "No documents found for trial balance",
+          data: {
+            categories: {},
+            totals: { debit: 0, credit: 0 }
+          },
+          _meta_actions: []
+        };
+      }
+      
+      // Get chart of accounts for account info
+      const chart = await getOrCreateChartOfAccounts();
+      const accountMap = {};
+      
+      // Build account map with categories
+      const buildAccountMap = (accounts, parentCategory = null) => {
+        accounts.forEach(account => {
+          accountMap[account.number] = {
+            name: account.name,
+            category: account.category || parentCategory,
+            debit: 0,
+            credit: 0,
+            balance: 0,
+            transactions: []
+          };
+          if (account.subAccounts && account.subAccounts.length > 0) {
+            buildAccountMap(account.subAccounts, account.category);
+          }
+        });
+      };
+      buildAccountMap(chart.accounts);
+      
+      // Process all documents
+      for (const item of response.items) {
+        try {
+          const decryptedDoc = await openkbs.decrypt(item.item.document);
+          const doc = JSON.parse(decryptedDoc);
+          
+          // Process accounting entries
+          if (doc.Accountings) {
+            for (const accounting of doc.Accountings) {
+              if (accounting.AccountingDetails) {
+                for (const detail of accounting.AccountingDetails) {
+                  const accountNum = detail.AccountNumber;
+                  if (accountMap[accountNum]) {
+                    const amount = parseFloat(detail.Amount || 0);
+                    
+                    if (detail.Direction === 'Debit') {
+                      accountMap[accountNum].debit += amount;
+                    } else if (detail.Direction === 'Credit') {
+                      accountMap[accountNum].credit += amount;
+                    }
+                    
+                    // Add transaction details
+                    accountMap[accountNum].transactions.push({
+                      documentId: doc.DocumentId,
+                      date: doc.Date,
+                      description: detail.Description,
+                      direction: detail.Direction,
+                      amount: amount
+                    });
+                  }
+                }
+              }
+            }
+          }
+        } catch (e) {
+          console.error("Error processing document for trial balance:", e);
+        }
+      }
+      
+      // Calculate balances and group by category
+      const categorizedAccounts = {};
+      let totalDebit = 0;
+      let totalCredit = 0;
+      
+      Object.entries(accountMap).forEach(([accountNum, account]) => {
+        if (account.debit > 0 || account.credit > 0) {
+          // Calculate balance based on account type
+          const category = account.category || 'Other';
+          if (category === 'Assets' || category === 'Expenses') {
+            account.balance = account.debit - account.credit;
+          } else {
+            account.balance = account.credit - account.debit;
+          }
+          
+          if (!categorizedAccounts[category]) {
+            categorizedAccounts[category] = {
+              accounts: [],
+              totalDebit: 0,
+              totalCredit: 0,
+              totalBalance: 0
+            };
+          }
+          
+          categorizedAccounts[category].accounts.push({
+            number: accountNum,
+            name: account.name,
+            debit: account.debit,
+            credit: account.credit,
+            balance: account.balance,
+            transactionCount: account.transactions.length
+          });
+          
+          categorizedAccounts[category].totalDebit += account.debit;
+          categorizedAccounts[category].totalCredit += account.credit;
+          categorizedAccounts[category].totalBalance += account.balance;
+          
+          totalDebit += account.debit;
+          totalCredit += account.credit;
+        }
+      });
+      
+      // Sort accounts within each category
+      Object.values(categorizedAccounts).forEach(category => {
+        category.accounts.sort((a, b) => a.number.localeCompare(b.number));
+      });
+      
+      return {
+        type: "TRIAL_BALANCE",
+        data: {
+          categories: categorizedAccounts,
+          totals: {
+            debit: totalDebit,
+            credit: totalCredit,
+            difference: Math.abs(totalDebit - totalCredit)
+          },
+          documentCount: response.items.length,
+          generatedAt: new Date().toISOString()
+        },
+        _meta_actions: ["REQUEST_CHAT_MODEL"]
+      };
+    } catch (e) {
+      console.error("Error generating trial balance:", e);
+      return {
+        type: "TRIAL_BALANCE_ERROR",
+        error: e.message || "Failed to generate trial balance",
+        _meta_actions: []
+      };
+    }
+  }],
+  
   // OCR processing for uploaded images
   [/\[\{"type":"text","text":[\s\S]*?\]/, async (match) => {
     try {
