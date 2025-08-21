@@ -30,7 +30,9 @@ CRITICAL RULES:
 
 OUTPUT_JSON_STRUCTURE (Example for PURCHASES where YOUR_COMPANY is isVATRegistered: true):
 
-IMPORTANT: Wrap your document output in a SAVE_DOCUMENT_REQUEST structure:
+IMPORTANT: Wrap your document output in a SAVE_DOCUMENT_REQUEST structure.
+ALSO: Analyze invoice items and suggest new account categories if existing ones don't fit well.
+
 {
   "type": "SAVE_DOCUMENT_REQUEST",
   "document": {
@@ -122,7 +124,16 @@ IMPORTANT: Wrap your document output in a SAVE_DOCUMENT_REQUEST structure:
       ]
     }
   ]
-  }
+  },
+  "suggestedAccounts": [
+    {
+      "parentNumber": "5100",
+      "number": "5110",
+      "name": "Electricity",
+      "category": "Expenses",
+      "reason": "Electricity utility bill - specific operating expense"
+    }
+  ]
 }
 
 AVAILABLE TOOLS:
@@ -186,6 +197,14 @@ FIELD DESCRIPTIONS:
   - Reference: Optional reference text
   - Measure: Unit of measurement (same as ServiceGood.Measure)
 - AccountingDetails: Debit/Credit entries for accounting
+
+ACCOUNT SUGGESTION RULES:
+When processing invoice items, analyze if they fit well into existing generic accounts.
+If items are specific (e.g., electricity, internet, fuel, specific materials), suggest new subaccounts:
+- For purchases: Suggest under 5000 (Purchases) or 5100 (Operating Expenses) or 5200 (Personnel)
+- Only suggest if the item is specific enough to warrant its own account
+- Provide clear reason explaining why this account would help categorization
+- Suggest account numbers that follow the parent numbering (e.g., 5110, 5111, 5112 under 5100)
 
 ACCOUNTING AND VAT RULES:
 

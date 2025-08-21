@@ -170,7 +170,7 @@ const saveChartOfAccounts = async (chart) => {
 };
 
 // Shared handler function for saving documents
-const saveDocument = async (document, meta) => {
+const saveDocument = async (document, suggestedAccounts, meta) => {
   try {
     if (!document.DocumentId) {
       throw new Error("Document must have a DocumentId field");
@@ -190,7 +190,7 @@ const saveDocument = async (document, meta) => {
       }
     });
     
-    // Return success response
+    // Return success response with suggested accounts
     return {
       type: "DOCUMENT_SAVED",
       data: {
@@ -198,6 +198,7 @@ const saveDocument = async (document, meta) => {
         documentId: document.DocumentId,
         itemCount: document.DocumentDetails?.length || 0,
         documentData: document,
+        suggestedAccounts: suggestedAccounts || [],
         result: response,
       },
       ...meta
@@ -219,12 +220,13 @@ export const getActions = (meta) => [
       // Parse the JSON content
       const requestData = JSON.parse(match[0]);
       const document = requestData.document;
+      const suggestedAccounts = requestData.suggestedAccounts;
       
       if (!document) {
         throw new Error("No document data provided");
       }
       
-      return await saveDocument(document, meta);
+      return await saveDocument(document, suggestedAccounts, meta);
     } catch (e) {
       console.error("Error processing save request:", e);
       return {
