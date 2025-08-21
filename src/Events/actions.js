@@ -316,7 +316,7 @@ export const getActions = (meta) => [
         type: "CHART_OF_ACCOUNTS",
         data: chart,
         accountCount: chart.accounts.length,
-        _meta_actions: ["REQUEST_CHAT_MODEL"]
+        _meta_actions: []
       };
     } catch (e) {
       return {
@@ -617,7 +617,7 @@ export const getActions = (meta) => [
           documentCount: response.items.length,
           generatedAt: new Date().toISOString()
         },
-        _meta_actions: ["REQUEST_CHAT_MODEL"]
+        _meta_actions: []
       };
     } catch (e) {
       console.error("Error generating trial balance:", e);
@@ -755,7 +755,7 @@ export const getActions = (meta) => [
           documentCount: response.items.length,
           generatedAt: new Date().toISOString()
         },
-        _meta_actions: ["REQUEST_CHAT_MODEL"]
+        _meta_actions: []
       };
     } catch (e) {
       console.error("Error generating income statement:", e);
@@ -861,7 +861,7 @@ export const getActions = (meta) => [
           },
           generatedAt: new Date().toISOString()
         },
-        _meta_actions: ["REQUEST_CHAT_MODEL"]
+        _meta_actions: []
       };
     } catch (e) {
       console.error("Error generating VAT report:", e);
@@ -1011,7 +1011,7 @@ export const getActions = (meta) => [
           },
           generatedAt: new Date().toISOString()
         },
-        _meta_actions: ["REQUEST_CHAT_MODEL"]
+        _meta_actions: []
       };
     } catch (e) {
       console.error("Error generating accounts report:", e);
