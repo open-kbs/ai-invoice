@@ -139,25 +139,13 @@ export const getActions = (meta) => [
   
   // Manual save when user clicks save button
   [/\{"type":"SAVE_DOCUMENT_REQUEST"[\s\S]*\}/, async (match) => {
-    try {
-      const requestData = JSON.parse(match[0]);
-      const document = requestData.document;
-
-      return {
-        document,
-        ...meta
-      };
-      if (!document) {
-        throw new Error("No document data provided");
-      }
-      return await saveDocument(document, meta);
-    } catch (e) {
-      return {
-        type: "SAVE_DOCUMENT_FAILED",
-        error: e.message || "Failed to process save request",
-        ...meta
-      };
-    }
+    // Test if regex matches
+    return {
+      type: "TEST_REGEX_MATCH",
+      message: "Regex matched SAVE_DOCUMENT_REQUEST!",
+      matchedString: match[0].substring(0, 100), // First 100 chars to see what was matched
+      ...meta
+    };
   }],
   // Get company details and chart of accounts for invoice processing
   [/\/getCompanyDetails\("([^"]*)",\s*"([^"]*)"\)/, async (match, event) => {
