@@ -106,11 +106,13 @@ const saveDocument = async (document, meta) => {
     // Return success response
     return {
       type: "DOCUMENT_SAVED",
-      message: `Document saved with ID: ${document.DocumentId}`,
-      documentId: document.DocumentId,
-      itemCount: document.DocumentDetails?.length || 0,
-      documentData: document,
-      result: response,
+      data: {
+        message: `Document saved with ID: ${document.DocumentId}`,
+        documentId: document.DocumentId,
+        itemCount: document.DocumentDetails?.length || 0,
+        documentData: document,
+        result: response,
+      },
       ...meta
     };
   } catch (e) {
