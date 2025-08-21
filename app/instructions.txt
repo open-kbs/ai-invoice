@@ -162,6 +162,39 @@ Shows debit, credit, and balance for each account within categories:
 Returns a formatted report with category totals and grand totals.
 """
 
+/getIncomeStatement()
+Description: """
+Generates Income Statement (Profit & Loss Report).
+Shows:
+- All revenue accounts with amounts
+- All expense accounts with amounts
+- Net Income (Revenue - Expenses)
+- Profit margin percentage
+Sorted by largest amounts first.
+"""
+
+/getVATReport()
+Description: """
+Generates VAT Report for tax reporting.
+Shows:
+- Total Input VAT (VAT paid on purchases - can be reclaimed)
+- Total Output VAT (VAT collected on sales - must be paid)
+- VAT Payable or Refundable amount
+- List of all documents with VAT amounts
+Essential for VAT returns and tax compliance.
+"""
+
+/getAccountsReport()
+Description: """
+Generates Accounts Payable and Receivable Report with aging analysis.
+Shows:
+- Accounts Payable: What you owe to each supplier
+- Accounts Receivable: What each customer owes you
+- Aging buckets: Current, 31-60 days, 61-90 days, Over 90 days
+- Net position (Receivables - Payables)
+Helps manage cash flow and credit control.
+"""
+
 /getChartOfAccounts()
 Description: """
 Get the current chart of accounts structure.

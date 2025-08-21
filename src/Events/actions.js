@@ -629,6 +629,400 @@ export const getActions = (meta) => [
     }
   }],
   
+  // Generate Income Statement (Profit & Loss)
+  [/\/getIncomeStatement\(\)/, async (match) => {
+    try {
+      // Fetch all documents
+      const response = await openkbs.items({
+        action: 'fetchItems',
+        itemType: 'document',
+        limit: 1000
+      });
+      
+      if (!response.items || response.items.length === 0) {
+        return {
+          type: "INCOME_STATEMENT",
+          message: "No documents found",
+          data: {
+            revenue: { accounts: [], total: 0 },
+            expenses: { accounts: [], total: 0 },
+            netIncome: 0
+          },
+          _meta_actions: []
+        };
+      }
+      
+      // Get chart of accounts
+      const chart = await getOrCreateChartOfAccounts();
+      const accountMap = {};
+      
+      // Build account map
+      const buildAccountMap = (accounts, parentCategory = null) => {
+        accounts.forEach(account => {
+          accountMap[account.number] = {
+            name: account.name,
+            category: account.category || parentCategory,
+            amount: 0,
+            transactions: 0
+          };
+          if (account.subAccounts && account.subAccounts.length > 0) {
+            buildAccountMap(account.subAccounts, account.category);
+          }
+        });
+      };
+      buildAccountMap(chart.accounts);
+      
+      // Process documents
+      for (const item of response.items) {
+        try {
+          const decryptedDoc = await openkbs.decrypt(item.item.document);
+          const doc = JSON.parse(decryptedDoc);
+          
+          if (doc.Accountings) {
+            for (const accounting of doc.Accountings) {
+              if (accounting.AccountingDetails) {
+                for (const detail of accounting.AccountingDetails) {
+                  const accountNum = detail.AccountNumber;
+                  if (accountMap[accountNum]) {
+                    const amount = parseFloat(detail.Amount || 0);
+                    const category = accountMap[accountNum].category;
+                    
+                    // For Revenue: Credit increases, Debit decreases
+                    // For Expenses: Debit increases, Credit decreases
+                    if (category === 'Revenue') {
+                      if (detail.Direction === 'Credit') {
+                        accountMap[accountNum].amount += amount;
+                      } else {
+                        accountMap[accountNum].amount -= amount;
+                      }
+                    } else if (category === 'Expenses') {
+                      if (detail.Direction === 'Debit') {
+                        accountMap[accountNum].amount += amount;
+                      } else {
+                        accountMap[accountNum].amount -= amount;
+                      }
+                    }
+                    accountMap[accountNum].transactions++;
+                  }
+                }
+              }
+            }
+          }
+        } catch (e) {
+          console.error("Error processing document:", e);
+        }
+      }
+      
+      // Separate revenue and expense accounts
+      const revenue = { accounts: [], total: 0 };
+      const expenses = { accounts: [], total: 0 };
+      
+      Object.entries(accountMap).forEach(([number, account]) => {
+        if (account.amount !== 0) {
+          if (account.category === 'Revenue') {
+            revenue.accounts.push({
+              number,
+              name: account.name,
+              amount: account.amount,
+              transactions: account.transactions
+            });
+            revenue.total += account.amount;
+          } else if (account.category === 'Expenses') {
+            expenses.accounts.push({
+              number,
+              name: account.name,
+              amount: account.amount,
+              transactions: account.transactions
+            });
+            expenses.total += account.amount;
+          }
+        }
+      });
+      
+      // Sort accounts
+      revenue.accounts.sort((a, b) => b.amount - a.amount);
+      expenses.accounts.sort((a, b) => b.amount - a.amount);
+      
+      const netIncome = revenue.total - expenses.total;
+      
+      return {
+        type: "INCOME_STATEMENT",
+        data: {
+          revenue,
+          expenses,
+          netIncome,
+          profitMargin: revenue.total > 0 ? (netIncome / revenue.total * 100) : 0,
+          documentCount: response.items.length,
+          generatedAt: new Date().toISOString()
+        },
+        _meta_actions: ["REQUEST_CHAT_MODEL"]
+      };
+    } catch (e) {
+      console.error("Error generating income statement:", e);
+      return {
+        type: "INCOME_STATEMENT_ERROR",
+        error: e.message || "Failed to generate income statement",
+        _meta_actions: []
+      };
+    }
+  }],
+  
+  // Generate VAT Report
+  [/\/getVATReport\(\)/, async (match) => {
+    try {
+      const response = await openkbs.items({
+        action: 'fetchItems',
+        itemType: 'document',
+        limit: 1000
+      });
+      
+      if (!response.items || response.items.length === 0) {
+        return {
+          type: "VAT_REPORT",
+          message: "No documents found",
+          data: {
+            inputVAT: 0,
+            outputVAT: 0,
+            vatPayable: 0,
+            documents: []
+          },
+          _meta_actions: []
+        };
+      }
+      
+      let inputVAT = 0;  // VAT on purchases (can be reclaimed)
+      let outputVAT = 0; // VAT on sales (must be paid)
+      const documents = [];
+      
+      for (const item of response.items) {
+        try {
+          const decryptedDoc = await openkbs.decrypt(item.item.document);
+          const doc = JSON.parse(decryptedDoc);
+          
+          const vatAmount = parseFloat(doc.TotalVatAmount || 0);
+          if (vatAmount > 0) {
+            // Determine if it's input or output VAT based on accounting entries
+            let isInput = false;
+            let isOutput = false;
+            
+            if (doc.Accountings) {
+              for (const accounting of doc.Accountings) {
+                if (accounting.AccountingDetails) {
+                  for (const detail of accounting.AccountingDetails) {
+                    if (detail.AccountNumber === '2310') { // Input VAT account
+                      isInput = true;
+                    } else if (detail.AccountNumber === '2320') { // Output VAT account
+                      isOutput = true;
+                    }
+                  }
+                }
+              }
+            }
+            
+            documents.push({
+              documentId: doc.DocumentId,
+              number: doc.Number,
+              date: doc.Date,
+              sender: doc.CompanySender?.Name,
+              recipient: doc.CompanyRecipient?.Name,
+              totalAmount: parseFloat(doc.TotalAmount || 0),
+              vatAmount: vatAmount,
+              type: isInput ? 'Input VAT' : (isOutput ? 'Output VAT' : 'Unknown')
+            });
+            
+            if (isInput) {
+              inputVAT += vatAmount;
+            } else if (isOutput) {
+              outputVAT += vatAmount;
+            }
+          }
+        } catch (e) {
+          console.error("Error processing document for VAT:", e);
+        }
+      }
+      
+      // Sort documents by date
+      documents.sort((a, b) => new Date(b.date) - new Date(a.date));
+      
+      const vatPayable = outputVAT - inputVAT;
+      
+      return {
+        type: "VAT_REPORT",
+        data: {
+          inputVAT,
+          outputVAT,
+          vatPayable,
+          vatRefundable: vatPayable < 0 ? Math.abs(vatPayable) : 0,
+          documents,
+          summary: {
+            totalDocuments: documents.length,
+            inputDocuments: documents.filter(d => d.type === 'Input VAT').length,
+            outputDocuments: documents.filter(d => d.type === 'Output VAT').length
+          },
+          generatedAt: new Date().toISOString()
+        },
+        _meta_actions: ["REQUEST_CHAT_MODEL"]
+      };
+    } catch (e) {
+      console.error("Error generating VAT report:", e);
+      return {
+        type: "VAT_REPORT_ERROR",
+        error: e.message || "Failed to generate VAT report",
+        _meta_actions: []
+      };
+    }
+  }],
+  
+  // Generate Accounts Payable/Receivable Report
+  [/\/getAccountsReport\(\)/, async (match) => {
+    try {
+      const response = await openkbs.items({
+        action: 'fetchItems',
+        itemType: 'document',
+        limit: 1000
+      });
+      
+      if (!response.items || response.items.length === 0) {
+        return {
+          type: "ACCOUNTS_REPORT",
+          message: "No documents found",
+          data: {
+            payables: [],
+            receivables: [],
+            totalPayable: 0,
+            totalReceivable: 0
+          },
+          _meta_actions: []
+        };
+      }
+      
+      const payables = {};  // What we owe to suppliers
+      const receivables = {}; // What customers owe us
+      
+      for (const item of response.items) {
+        try {
+          const decryptedDoc = await openkbs.decrypt(item.item.document);
+          const doc = JSON.parse(decryptedDoc);
+          
+          // Check if it's payable or receivable based on accounting entries
+          let hasPayable = false;
+          let hasReceivable = false;
+          
+          if (doc.Accountings) {
+            for (const accounting of doc.Accountings) {
+              if (accounting.AccountingDetails) {
+                for (const detail of accounting.AccountingDetails) {
+                  if (detail.AccountNumber === '2100') { // Accounts Payable
+                    hasPayable = true;
+                  } else if (detail.AccountNumber === '1200') { // Accounts Receivable
+                    hasReceivable = true;
+                  }
+                }
+              }
+            }
+          }
+          
+          const amount = parseFloat(doc.TotalAmount || 0);
+          const daysOld = Math.floor((new Date() - new Date(doc.Date)) / (1000 * 60 * 60 * 24));
+          
+          if (hasPayable) {
+            const supplier = doc.CompanySender?.Name || 'Unknown';
+            if (!payables[supplier]) {
+              payables[supplier] = {
+                name: supplier,
+                taxId: doc.CompanySender?.TaxID,
+                totalAmount: 0,
+                documents: []
+              };
+            }
+            payables[supplier].totalAmount += amount;
+            payables[supplier].documents.push({
+              documentId: doc.DocumentId,
+              number: doc.Number,
+              date: doc.Date,
+              amount: amount,
+              daysOld: daysOld,
+              aging: daysOld <= 30 ? 'Current' : daysOld <= 60 ? '31-60 days' : daysOld <= 90 ? '61-90 days' : 'Over 90 days'
+            });
+          }
+          
+          if (hasReceivable) {
+            const customer = doc.CompanyRecipient?.Name || 'Unknown';
+            if (!receivables[customer]) {
+              receivables[customer] = {
+                name: customer,
+                taxId: doc.CompanyRecipient?.TaxID,
+                totalAmount: 0,
+                documents: []
+              };
+            }
+            receivables[customer].totalAmount += amount;
+            receivables[customer].documents.push({
+              documentId: doc.DocumentId,
+              number: doc.Number,
+              date: doc.Date,
+              amount: amount,
+              daysOld: daysOld,
+              aging: daysOld <= 30 ? 'Current' : daysOld <= 60 ? '31-60 days' : daysOld <= 90 ? '61-90 days' : 'Over 90 days'
+            });
+          }
+        } catch (e) {
+          console.error("Error processing document:", e);
+        }
+      }
+      
+      // Convert to arrays and calculate totals
+      const payablesList = Object.values(payables);
+      const receivablesList = Object.values(receivables);
+      
+      const totalPayable = payablesList.reduce((sum, p) => sum + p.totalAmount, 0);
+      const totalReceivable = receivablesList.reduce((sum, r) => sum + r.totalAmount, 0);
+      
+      // Calculate aging summary
+      const calculateAging = (list) => {
+        const aging = {
+          current: 0,
+          days30_60: 0,
+          days60_90: 0,
+          over90: 0
+        };
+        list.forEach(company => {
+          company.documents.forEach(doc => {
+            if (doc.aging === 'Current') aging.current += doc.amount;
+            else if (doc.aging === '31-60 days') aging.days30_60 += doc.amount;
+            else if (doc.aging === '61-90 days') aging.days60_90 += doc.amount;
+            else aging.over90 += doc.amount;
+          });
+        });
+        return aging;
+      };
+      
+      return {
+        type: "ACCOUNTS_REPORT",
+        data: {
+          payables: payablesList,
+          receivables: receivablesList,
+          totalPayable,
+          totalReceivable,
+          netPosition: totalReceivable - totalPayable,
+          agingSummary: {
+            payables: calculateAging(payablesList),
+            receivables: calculateAging(receivablesList)
+          },
+          generatedAt: new Date().toISOString()
+        },
+        _meta_actions: ["REQUEST_CHAT_MODEL"]
+      };
+    } catch (e) {
+      console.error("Error generating accounts report:", e);
+      return {
+        type: "ACCOUNTS_REPORT_ERROR",
+        error: e.message || "Failed to generate accounts report",
+        _meta_actions: []
+      };
+    }
+  }],
+  
   // OCR processing for uploaded images
   [/\[\{"type":"text","text":[\s\S]*?\]/, async (match) => {
     try {
