@@ -125,7 +125,7 @@ const saveDocument = async (document, meta) => {
 
 export const getActions = (meta) => [
   // Auto-save when LLM outputs a document with DocumentId
-  [/\{[\s\S]*?"DocumentId"[\s\S]*?\}/m, async (match) => {
+  [/\{"DocumentId"[\s\S]*\}/, async (match) => {
     try {
       const document = JSON.parse(match[0]);
       if (!document.DocumentId) {
@@ -142,6 +142,11 @@ export const getActions = (meta) => [
     try {
       const requestData = JSON.parse(match[0]);
       const document = requestData.document;
+
+      return {
+        document,
+        ...meta
+      };
       if (!document) {
         throw new Error("No document data provided");
       }
