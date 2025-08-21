@@ -124,28 +124,26 @@ const saveDocument = async (document, meta) => {
 };
 
 export const getActions = (meta) => [
-  // Auto-save when LLM outputs a document with DocumentId
-  [/\{"DocumentId"[\s\S]*\}/, async (match) => {
+  // Save document - handles both LLM output and manual save button
+  [/\{\s*"type"\s*:\s*"SAVE_DOCUMENT_REQUEST"[\s\S]*\}/, async (match) => {
     try {
-      const document = JSON.parse(match[0]);
-      if (!document.DocumentId) {
-        return null; // Not a document, let other handlers process it
+      // Parse the JSON content
+      const requestData = JSON.parse(match[0]);
+      const document = requestData.document;
+      
+      if (!document) {
+        throw new Error("No document data provided");
       }
+      
       return await saveDocument(document, meta);
     } catch (e) {
-      return null; // Let document be displayed normally if parsing fails
+      console.error("Error processing save request:", e);
+      return {
+        type: "SAVE_DOCUMENT_FAILED",
+        error: e.message || "Failed to process save request",
+        ...meta
+      };
     }
-  }],
-  
-  // Manual save when user clicks save button
-  [/\{"type":"SAVE_DOCUMENT_REQUEST"[\s\S]*\}/, async (match) => {
-    // Test if regex matches
-    return {
-      type: "TEST_REGEX_MATCH",
-      message: "Regex matched SAVE_DOCUMENT_REQUEST!",
-      matchedString: match[0].substring(0, 100), // First 100 chars to see what was matched
-      ...meta
-    };
   }],
   // Get company details and chart of accounts for invoice processing
   [/\/getCompanyDetails\("([^"]*)",\s*"([^"]*)"\)/, async (match, event) => {
