@@ -351,6 +351,18 @@ export const getActions = (meta) => [
         try {
           const decryptedDoc = await openkbs.decrypt(item.item.document);
           const parsedDoc = JSON.parse(decryptedDoc);
+          
+          // Include the items/details
+          const items = parsedDoc.DocumentDetails?.map(detail => ({
+            name: detail.ServiceGood?.Name,
+            quantity: detail.Qtty,
+            measure: detail.Measure,
+            price: detail.ServiceGood?.Price,
+            amount: detail.Amount,
+            vatRate: detail.ServiceGood?.VatRate,
+            vatAmount: detail.VatAmount
+          })) || [];
+          
           return {
             id: item.item.Id,
             documentId: parsedDoc.DocumentId,
@@ -358,9 +370,13 @@ export const getActions = (meta) => [
             number: parsedDoc.Number,
             date: parsedDoc.Date,
             totalAmount: parsedDoc.TotalAmount,
+            totalVatAmount: parsedDoc.TotalVatAmount,
             sender: parsedDoc.CompanySender?.Name,
+            senderTaxId: parsedDoc.CompanySender?.TaxID,
             recipient: parsedDoc.CompanyRecipient?.Name,
+            recipientTaxId: parsedDoc.CompanyRecipient?.TaxID,
             itemCount: parsedDoc.DocumentDetails?.length || 0,
+            items: items,
             createdAt: item.meta.createdAt,
             updatedAt: item.meta.updatedAt
           };
@@ -376,6 +392,7 @@ export const getActions = (meta) => [
       return {
         type: "DOCUMENTS_LIST",
         data,
+        count: data.length,
         _meta_actions: []  // No LLM interaction needed
       };
     } catch (e) {

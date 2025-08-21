@@ -53,7 +53,6 @@ export const DocumentDetailsTable = ({ details = [], onDetailsChange }) => {
     const newDetail = {
       ServiceGood: {
         Name: "",
-        Code: "",
         Price: "0.000000",
         FixPrice: "0.000000",
         EcoTax: "0.000000",
@@ -119,17 +118,7 @@ export const DocumentDetailsTable = ({ details = [], onDetailsChange }) => {
               />
 
               <Grid container spacing={2} sx={{ mb: 2 }}>
-                <Grid item xs={6}>
-                  <TextField
-                    fullWidth
-                    label="Code"
-                    variant="outlined"
-                    size="small"
-                    value={detail.ServiceGood?.Code || ""}
-                    onChange={(e) => handleDetailChange(index, "ServiceGood.Code", e.target.value)}
-                  />
-                </Grid>
-                <Grid item xs={6}>
+                <Grid item xs={12}>
                   <TextField
                     fullWidth
                     label="Barcode"
@@ -248,8 +237,7 @@ export const DocumentDetailsTable = ({ details = [], onDetailsChange }) => {
           <TableHead>
             <TableRow>
               <TableCell width="30px">#</TableCell>
-              <TableCell width="400px">Name</TableCell>
-              <TableCell width="130px">Code</TableCell>
+              <TableCell width="530px">Name</TableCell>
               <TableCell width="50px">Qty</TableCell>
               <TableCell width="60px">Unit</TableCell>
               <TableCell width="90px">Price</TableCell>
@@ -279,24 +267,6 @@ export const DocumentDetailsTable = ({ details = [], onDetailsChange }) => {
                         }
                       }
                     }}
-                  />
-                </TableCell>
-                <TableCell>
-                  <TextField
-                    fullWidth
-                    variant="outlined"
-                    size="small"
-                    InputProps={{
-                      sx: {
-                        '& .MuiOutlinedInput-input': {
-                          padding: '6px 8px',
-                          fontSize: '0.85rem',
-                          minHeight: '18px'
-                        }
-                      }
-                    }}
-                    value={detail.ServiceGood?.Code || ""}
-                    onChange={(e) => handleDetailChange(index, "ServiceGood.Code", e.target.value)}
                   />
                 </TableCell>
                 <TableCell>
