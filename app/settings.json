@@ -34,6 +34,25 @@
           "attrType": "body"
         }
       ]
+    },
+    "chartOfAccounts": {
+      "attributes": [
+        {
+          "label": "Id",
+          "placeholder": "chartOfAccounts",
+          "encrypted": false,
+          "attrName": "Id",
+          "attrType": "itemId"
+        },
+        {
+          "unit": "chart",
+          "label": "chart",
+          "placeholder": "Complete chart of accounts JSON",
+          "encrypted": true,
+          "attrName": "chart",
+          "attrType": "body"
+        }
+      ]
     }
   }
 }

@@ -138,6 +138,23 @@ Lists all saved documents with their basic information (ID, date, amount, compan
 Returns the list directly without LLM processing.
 """
 
+/getChartOfAccounts()
+Description: """
+Get the current chart of accounts structure.
+Returns the complete chart with all accounts and subaccounts.
+If no chart exists, creates a default one automatically.
+"""
+
+/addAccount({"parentNumber": "5000", "number": "5010", "name": "Raw Materials", "category": "Expenses"})
+Description: """
+Add a new account to the chart of accounts.
+Parameters:
+- number: Account number (required)
+- name: Account name (required)
+- parentNumber: Parent account number (optional, for subaccounts)
+- category: Account category (optional, defaults to parent's category)
+"""
+
 /saveDocument(document_json)
 Description: """
 Saves the extracted document to the database. Pass the complete JSON structure.

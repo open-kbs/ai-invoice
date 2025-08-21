@@ -35,51 +35,138 @@ const fetchEUCompanyDetails = async (vatNumber) => {
   }
 };
 
-// Helper function to generate chart of accounts
-const getChartOfAccounts = () => {
+// Default chart of accounts structure - minimal generic version
+const getDefaultChartOfAccounts = () => {
   return {
     accounts: [
       // Assets (1000-1999)
-      { number: "1000", name: "Cash", category: "Assets" },
-      { number: "1100", name: "Bank Accounts", category: "Assets" },
-      { number: "1200", name: "Accounts Receivable", category: "Assets" },
-      { number: "1300", name: "Inventory", category: "Assets" },
-      { number: "1400", name: "Prepaid Expenses", category: "Assets" },
-      { number: "1500", name: "Fixed Assets", category: "Assets" },
-      { number: "1600", name: "Accumulated Depreciation", category: "Assets" },
+      { number: "1000", name: "Cash", category: "Assets", subAccounts: [] },
+      { number: "1100", name: "Bank Accounts", category: "Assets", subAccounts: [] },
+      { number: "1200", name: "Accounts Receivable", category: "Assets", subAccounts: [] },
+      { number: "1500", name: "Fixed Assets", category: "Assets", subAccounts: [] },
       
       // Liabilities (2000-2999)
-      { number: "2100", name: "Accounts Payable", category: "Liabilities" },
-      { number: "2200", name: "Short-term Loans", category: "Liabilities" },
-      { number: "2300", name: "VAT Payable", category: "Liabilities" },
-      { number: "2310", name: "Input VAT", category: "Liabilities" },
-      { number: "2320", name: "Output VAT", category: "Liabilities" },
-      { number: "2400", name: "Salaries Payable", category: "Liabilities" },
-      { number: "2500", name: "Long-term Loans", category: "Liabilities" },
+      { number: "2100", name: "Accounts Payable", category: "Liabilities", subAccounts: [] },
+      { number: "2300", name: "VAT Payable", category: "Liabilities", subAccounts: [] },
+      { number: "2310", name: "Input VAT", category: "Liabilities", subAccounts: [] },
+      { number: "2320", name: "Output VAT", category: "Liabilities", subAccounts: [] },
+      { number: "2500", name: "Loans", category: "Liabilities", subAccounts: [] },
       
       // Equity (3000-3999)
-      { number: "3000", name: "Share Capital", category: "Equity" },
-      { number: "3100", name: "Retained Earnings", category: "Equity" },
-      { number: "3200", name: "Current Year Earnings", category: "Equity" },
+      { number: "3000", name: "Capital", category: "Equity", subAccounts: [] },
+      { number: "3100", name: "Retained Earnings", category: "Equity", subAccounts: [] },
       
       // Revenue (4000-4999)
-      { number: "4000", name: "Sales Revenue", category: "Revenue" },
-      { number: "4100", name: "Service Revenue", category: "Revenue" },
-      { number: "4200", name: "Other Revenue", category: "Revenue" },
+      { number: "4000", name: "Sales", category: "Revenue", subAccounts: [] },
+      { number: "4100", name: "Services", category: "Revenue", subAccounts: [] },
       
       // Expenses (5000-5999)
-      { number: "5000", name: "Cost of Goods Sold", category: "Expenses" },
-      { number: "5100", name: "Rent Expense", category: "Expenses" },
-      { number: "5200", name: "Purchases", category: "Expenses" },
-      { number: "5300", name: "Salaries Expense", category: "Expenses" },
-      { number: "5400", name: "Utilities Expense", category: "Expenses" },
-      { number: "5500", name: "Marketing Expense", category: "Expenses" },
-      { number: "5600", name: "Office Supplies", category: "Expenses" },
-      { number: "5700", name: "Travel Expense", category: "Expenses" },
-      { number: "5800", name: "Depreciation Expense", category: "Expenses" },
-      { number: "5900", name: "Other Expenses", category: "Expenses" }
+      { number: "5000", name: "Purchases", category: "Expenses", subAccounts: [] },
+      { number: "5100", name: "Operating Expenses", category: "Expenses", subAccounts: [] },
+      { number: "5200", name: "Personnel Expenses", category: "Expenses", subAccounts: [] },
+      { number: "5900", name: "Other Expenses", category: "Expenses", subAccounts: [] }
     ]
   };
+};
+
+// Helper function to get or create chart of accounts
+const getOrCreateChartOfAccounts = async () => {
+  try {
+    // Try to fetch existing chart of accounts
+    const response = await openkbs.items({
+      action: 'fetchItems',
+      itemType: 'chartOfAccounts',
+      limit: 1
+    });
+    
+    if (response.items && response.items.length > 0) {
+      // Chart exists, decrypt and parse it
+      const encryptedChart = response.items[0].item.chart;
+      const decryptedChart = await openkbs.decrypt(encryptedChart);
+      return JSON.parse(decryptedChart);
+    } else {
+      // Chart doesn't exist, create default one
+      const defaultChart = getDefaultChartOfAccounts();
+      
+      // Save the default chart
+      await openkbs.items({
+        action: 'createItem',
+        itemType: 'chartOfAccounts',
+        attributes: [
+          { attrType: "itemId", attrName: "Id", encrypted: false },
+          { attrType: "body", attrName: "chart", encrypted: true }
+        ],
+        item: {
+          Id: 'chartOfAccounts',
+          chart: await openkbs.encrypt(JSON.stringify(defaultChart))
+        }
+      });
+      
+      return defaultChart;
+    }
+  } catch (e) {
+    console.error("Error getting chart of accounts:", e);
+    // Return default if there's an error
+    return getDefaultChartOfAccounts();
+  }
+};
+
+// Helper function to recursively find and add account
+const addAccountToChart = (accounts, parentNumber, newAccount) => {
+  for (let account of accounts) {
+    if (account.number === parentNumber) {
+      // Found parent, add as subaccount
+      if (!account.subAccounts) account.subAccounts = [];
+      account.subAccounts.push(newAccount);
+      return true;
+    }
+    // Recursively search in subaccounts
+    if (account.subAccounts && account.subAccounts.length > 0) {
+      if (addAccountToChart(account.subAccounts, parentNumber, newAccount)) {
+        return true;
+      }
+    }
+  }
+  return false;
+};
+
+// Helper function to save updated chart
+const saveChartOfAccounts = async (chart) => {
+  try {
+    const encryptedChart = await openkbs.encrypt(JSON.stringify(chart));
+    
+    // First try to update existing
+    try {
+      await openkbs.items({
+        action: 'updateItem',
+        itemType: 'chartOfAccounts',
+        itemId: 'chartOfAccounts',
+        item: {
+          Id: 'chartOfAccounts',
+          chart: encryptedChart
+        }
+      });
+      return true;
+    } catch (updateError) {
+      // If update fails, create new
+      await openkbs.items({
+        action: 'createItem',
+        itemType: 'chartOfAccounts',
+        attributes: [
+          { attrType: "itemId", attrName: "Id", encrypted: false },
+          { attrType: "body", attrName: "chart", encrypted: true }
+        ],
+        item: {
+          Id: 'chartOfAccounts',
+          chart: encryptedChart
+        }
+      });
+      return true;
+    }
+  } catch (e) {
+    console.error("Error saving chart of accounts:", e);
+    return false;
+  }
 };
 
 // Shared handler function for saving documents
@@ -147,6 +234,88 @@ export const getActions = (meta) => [
       };
     }
   }],
+  // Add account to chart of accounts
+  [/\/addAccount\(([^)]+)\)/, async (match) => {
+    try {
+      // Parse the parameters - expecting JSON like: {"parentNumber": "5000", "number": "5010", "name": "Raw Materials", "category": "Expenses"}
+      const params = JSON.parse(match[1]);
+      const { parentNumber, number, name, category } = params;
+      
+      if (!number || !name) {
+        return {
+          type: "ADD_ACCOUNT_FAILED",
+          error: "Account number and name are required",
+          _meta_actions: []
+        };
+      }
+      
+      // Get current chart
+      const chart = await getOrCreateChartOfAccounts();
+      
+      const newAccount = {
+        number,
+        name,
+        category: category || "Expenses",
+        subAccounts: []
+      };
+      
+      let added = false;
+      if (parentNumber) {
+        // Add as subaccount
+        added = addAccountToChart(chart.accounts, parentNumber, newAccount);
+      } else {
+        // Add as top-level account
+        chart.accounts.push(newAccount);
+        added = true;
+      }
+      
+      if (added) {
+        // Save updated chart
+        await saveChartOfAccounts(chart);
+        
+        return {
+          type: "ACCOUNT_ADDED",
+          message: `Account ${number} - ${name} added successfully`,
+          account: newAccount,
+          parentNumber: parentNumber || "root",
+          _meta_actions: []
+        };
+      } else {
+        return {
+          type: "ADD_ACCOUNT_FAILED",
+          error: `Parent account ${parentNumber} not found`,
+          _meta_actions: []
+        };
+      }
+    } catch (e) {
+      return {
+        type: "ADD_ACCOUNT_FAILED",
+        error: e.message || "Failed to add account",
+        _meta_actions: []
+      };
+    }
+  }],
+  
+  // Get chart of accounts (for use by LLM and viewing)
+  [/\/getChartOfAccounts\(\)/, async (match) => {
+    try {
+      const chart = await getOrCreateChartOfAccounts();
+      
+      return {
+        type: "CHART_OF_ACCOUNTS",
+        data: chart,
+        accountCount: chart.accounts.length,
+        _meta_actions: ["REQUEST_CHAT_MODEL"]
+      };
+    } catch (e) {
+      return {
+        type: "GET_CHART_FAILED",
+        error: e.message || "Failed to retrieve chart of accounts",
+        _meta_actions: []
+      };
+    }
+  }],
+  
   // List all saved documents
   [/\/listDocuments\(\)/, async (match) => {
     try {
@@ -257,10 +426,13 @@ export const getActions = (meta) => [
         };
       }
       
+      // Get chart of accounts from database or create default
+      const chartOfAccounts = await getOrCreateChartOfAccounts();
+      
       const result = {
         YourCompany: yourCompany,
         OtherCompany: otherCompany,
-        ChartOfAccounts: getChartOfAccounts()
+        ChartOfAccounts: chartOfAccounts
       };
 
       return {
