@@ -53,5 +53,11 @@
         }
       ]
     }
-  }
+  },
+  "requiredServices": [
+    {
+      "interface": "text-generation",
+      "type": "main-chat-model"
+    }
+  ]
 }
