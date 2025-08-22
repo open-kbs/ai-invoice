@@ -192,7 +192,7 @@ export const getActions = (meta) => [
   [/\{\s*"type"\s*:\s*"SAVE_DOCUMENT_REQUEST"[\s\S]*\}/, async (match) => {
     try {
       // Parse the JSON content
-      const requestData = JSON.parse(match[0]);
+      const requestData = openkbs.parseJSONFromText(match[0]);
       const document = requestData.document;
       const suggestedAccounts = requestData.suggestedAccounts;
       
