@@ -8,6 +8,7 @@ import { IncomeStatement } from "./IncomeStatement";
 import { VATReport } from "./VATReport";
 import { AccountsReport } from "./AccountsReport";
 import { ChartOfAccounts } from "./ChartOfAccounts";
+import { InvoiceImage } from "./InvoiceImage";
 
 const isMobile = window.openkbs.isMobile;
 
@@ -67,16 +68,10 @@ const onRenderChatMessage = async (params) => {
         return [
           prefix && <div style={{ whiteSpace: 'pre-wrap', marginBottom: '10px' }}>{prefix}</div>,
           ...imageItems.map((imageItem, index) => (
-            <img 
+            <InvoiceImage 
               key={index}
-              src={imageItem.image_url.url} 
+              imageUrl={imageItem.image_url.url} 
               alt={`Uploaded Invoice ${index + 1}`}
-              style={{
-                maxWidth: isMobile ? '100%' : '50%',
-                height: 'auto',
-                display: 'block',
-                marginBottom: '16px'
-              }}
             />
           ))
         ];
