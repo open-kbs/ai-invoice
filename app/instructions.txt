@@ -270,27 +270,17 @@ If items are specific (e.g., electricity, internet, fuel, specific materials), s
 - Provide clear reason explaining why this account would help categorization
 - Suggest account numbers that follow the parent numbering (e.g., 5110, 5111, 5112 under 5100)
 
-ACCOUNTING AND VAT RULES:
+ACCOUNTING RULES:
 
-STEP 1: DETERMINE VAT STATUS
-- Check YOUR_COMPANY_TAX_ID isVATRegistered status from getCompanyDetails response
-- This determines both JSON fields AND accounting entries
+STEP 1: GET CHART OF ACCOUNTS
+- Use /getChartOfAccounts() to get the chart of accounts structure
+- Use the account numbers and descriptions from that response for all accounting entries
 
-STEP 2: JSON FIELD RULES BASED ON VAT STATUS
-IF YOUR_COMPANY_TAX_ID isVATRegistered: false
-- TotalVatAmount: "0.000000" (no separate VAT accounting)
-- TotalAmount: full invoice amount including any VAT
-- VatAmount in DocumentDetails: "0.000000"
-
-IF YOUR_COMPANY_TAX_ID isVATRegistered: true  
-- TotalVatAmount: calculate VAT amounts separately
-- TotalAmount: full invoice amount
-- VatAmount in DocumentDetails: calculate VAT per line
-
-STEP 3: ACCOUNTING ENTRIES
-
-The ChartOfAccounts will be provided in the getCompanyDetails response.
-Use the account numbers and descriptions from that response for all accounting entries.
+STEP 2: VAT HANDLING
+- Always calculate VAT amounts separately when VAT is present on invoice
+- TotalVatAmount: sum of all VAT amounts
+- TotalAmount: full invoice amount including VAT
+- VatAmount in DocumentDetails: calculate VAT per line item
 
 CRITICAL: MULTI-CATEGORY INVOICE HANDLING
 When invoice contains items from different categories (e.g., goods + services):
