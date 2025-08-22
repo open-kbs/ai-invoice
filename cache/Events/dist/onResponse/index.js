@@ -328,8 +328,7 @@ const getActions = (meta) => [
       return {
         type: "CHART_OF_ACCOUNTS",
         data: chart,
-        accountCount: chart.accounts.length,
-        _meta_actions: []
+        ...meta
       };
     } catch (e) {
       return {
