@@ -241,7 +241,7 @@ const getActions = (meta) => [
   [/\{\s*"type"\s*:\s*"SAVE_DOCUMENT_REQUEST"[\s\S]*\}/, async (match) => {
     try {
       // Parse the JSON content
-      const requestData = JSON.parse(match[0]);
+      const requestData = openkbs.parseJSONFromText(match[0]);
       const document = requestData.document;
       const suggestedAccounts = requestData.suggestedAccounts;
       
@@ -968,33 +968,48 @@ const getActions = (meta) => [
   }],
   
   // OCR processing for uploaded images
-  [/\[\{"type":"text","text":[\s\S]*?\]/, async (match) => {
+  [/\[[\s\S]*?"image_url"[\s\S]*?\]/, async (match) => {
     try {
       // Parse the image upload content
       const uploadContent = JSON.parse(match[0]);
       
-      // Extract image URL from the array
-      let imageUrl = "";
+      // Extract all image URLs from the array
+      const imageUrls = [];
       for (const item of uploadContent) {
         if (item.type === "image_url" && item.image_url?.url) {
-          imageUrl = item.image_url.url;
-          break;
+          imageUrls.push(item.image_url.url);
         }
       }
       
-      if (!imageUrl) {
-        throw new Error("No image URL found in upload");
+      if (imageUrls.length === 0) {
+        throw new Error("No image URLs found in upload");
       }
       
-      // Perform OCR
-      const ocr = await openkbs.imageToText(imageUrl);
+      // Perform OCR on all images
+      const ocrResults = [];
+      for (const imageUrl of imageUrls) {
+        try {
+          const ocr = await openkbs.imageToText(imageUrl);
+          ocrResults.push({
+            imageUrl: imageUrl,
+            text: ocr?.results || ""
+          });
+        } catch (ocrError) {
+          console.error(`OCR error for image ${imageUrl}:`, ocrError);
+          ocrResults.push({
+            imageUrl: imageUrl,
+            text: "",
+            error: ocrError.message
+          });
+        }
+      }
       
       return {
         data: {
-          invoiceText: ocr?.results,
-          imageUrl: imageUrl
+          invoiceTexts: ocrResults,
+          imageUrls: imageUrls
         },
-        message: `OCR completed for uploaded image`,
+        message: `OCR completed for ${imageUrls.length} image(s)`,
         ...meta
       };
     } catch (e) {
