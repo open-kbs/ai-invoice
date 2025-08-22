@@ -44,9 +44,14 @@ const getOrCreateChartOfAccounts = async () => {
       limit: 1
     });
     
-    if (response.items && response.items.length > 0) {
+    // Filter for chartOfAccounts items
+    const chartItems = response.items?.filter(item => 
+      item.meta?.itemType === 'chartOfAccounts'
+    ) || [];
+    
+    if (chartItems.length > 0) {
       // Chart exists, decrypt and parse it
-      const encryptedChart = response.items[0].item.chart;
+      const encryptedChart = chartItems[0].item.chart;
       const decryptedChart = await openkbs.decrypt(encryptedChart);
       const parsedChart = JSON.parse(decryptedChart);
       return parsedChart;
@@ -103,11 +108,17 @@ const saveChartOfAccounts = async (chart) => {
     // First check if chart exists
     const existing = await openkbs.items({
       action: 'fetchItems',
-      itemType: 'chartOfAccounts',
+      field: 'itemId',
+      from: 'chartOfAccounts',
       limit: 1
     });
     
-    if (existing.items && existing.items.length > 0) {
+    // Filter for chartOfAccounts items
+    const existingCharts = existing.items?.filter(item => 
+      item.meta?.itemType === 'chartOfAccounts'
+    ) || [];
+    
+    if (existingCharts.length > 0) {
       // Update existing - need to delete and recreate
       try {
         // Delete old version
@@ -297,11 +308,15 @@ export const getActions = (meta) => [
       // Fetch all documents from storage
       const response = await openkbs.items({
         action: 'fetchItems',
-        itemType: 'document',
-        limit: 100  // Adjust as needed
+        limit: 1000
       });
       
-      if (!response.items || response.items.length === 0) {
+      // Filter for document items only
+      const documentItems = response.items?.filter(item => 
+        item.meta?.itemType === 'document'
+      ) || [];
+      
+      if (documentItems.length === 0) {
         return {
           type: "DOCUMENTS_LIST",
           message: "No documents found",
@@ -311,7 +326,7 @@ export const getActions = (meta) => [
       }
       
       // Decrypt and parse each document
-      const data = await Promise.all(response.items.map(async (item) => {
+      const data = await Promise.all(documentItems.map(async (item) => {
         try {
           const decryptedDoc = await openkbs.decrypt(item.item.document);
           const parsedDoc = JSON.parse(decryptedDoc);
@@ -376,11 +391,15 @@ export const getActions = (meta) => [
       // Fetch all documents
       const response = await openkbs.items({
         action: 'fetchItems',
-        itemType: 'document',
         limit: 1000
       });
       
-      if (!response.items || response.items.length === 0) {
+      // Filter for document items only
+      const documentItems = response.items?.filter(item => 
+        item.meta?.itemType === 'document'
+      ) || [];
+      
+      if (documentItems.length === 0) {
         return {
           type: "TRIAL_BALANCE",
           message: "No documents found for trial balance",
@@ -415,7 +434,7 @@ export const getActions = (meta) => [
       buildAccountMap(chart.accounts);
       
       // Process all documents
-      for (const item of response.items) {
+      for (const item of documentItems) {
         try {
           const decryptedDoc = await openkbs.decrypt(item.item.document);
           const doc = JSON.parse(decryptedDoc);
@@ -509,7 +528,7 @@ export const getActions = (meta) => [
             credit: totalCredit,
             difference: Math.abs(totalDebit - totalCredit)
           },
-          documentCount: response.items.length,
+          documentCount: documentItems.length,
           generatedAt: new Date().toISOString()
         },
         _meta_actions: []
@@ -530,11 +549,15 @@ export const getActions = (meta) => [
       // Fetch all documents
       const response = await openkbs.items({
         action: 'fetchItems',
-        itemType: 'document',
         limit: 1000
       });
       
-      if (!response.items || response.items.length === 0) {
+      // Filter for document items only
+      const documentItems = response.items?.filter(item => 
+        item.meta?.itemType === 'document'
+      ) || [];
+      
+      if (documentItems.length === 0) {
         return {
           type: "INCOME_STATEMENT",
           message: "No documents found",
@@ -568,7 +591,7 @@ export const getActions = (meta) => [
       buildAccountMap(chart.accounts);
       
       // Process documents
-      for (const item of response.items) {
+      for (const item of documentItems) {
         try {
           const decryptedDoc = await openkbs.decrypt(item.item.document);
           const doc = JSON.parse(decryptedDoc);
@@ -647,7 +670,7 @@ export const getActions = (meta) => [
           expenses,
           netIncome,
           profitMargin: revenue.total > 0 ? (netIncome / revenue.total * 100) : 0,
-          documentCount: response.items.length,
+          documentCount: documentItems.length,
           generatedAt: new Date().toISOString()
         },
         _meta_actions: []
@@ -667,11 +690,15 @@ export const getActions = (meta) => [
     try {
       const response = await openkbs.items({
         action: 'fetchItems',
-        itemType: 'document',
         limit: 1000
       });
       
-      if (!response.items || response.items.length === 0) {
+      // Filter for document items only
+      const documentItems = response.items?.filter(item => 
+        item.meta?.itemType === 'document'
+      ) || [];
+      
+      if (documentItems.length === 0) {
         return {
           type: "VAT_REPORT",
           message: "No documents found",
@@ -689,7 +716,7 @@ export const getActions = (meta) => [
       let outputVAT = 0; // VAT on sales (must be paid)
       const documents = [];
       
-      for (const item of response.items) {
+      for (const item of documentItems) {
         try {
           const decryptedDoc = await openkbs.decrypt(item.item.document);
           const doc = JSON.parse(decryptedDoc);
@@ -773,11 +800,15 @@ export const getActions = (meta) => [
     try {
       const response = await openkbs.items({
         action: 'fetchItems',
-        itemType: 'document',
         limit: 1000
       });
       
-      if (!response.items || response.items.length === 0) {
+      // Filter for document items only
+      const documentItems = response.items?.filter(item => 
+        item.meta?.itemType === 'document'
+      ) || [];
+      
+      if (documentItems.length === 0) {
         return {
           type: "ACCOUNTS_REPORT",
           message: "No documents found",
@@ -794,7 +825,7 @@ export const getActions = (meta) => [
       const payables = {};  // What we owe to suppliers
       const receivables = {}; // What customers owe us
       
-      for (const item of response.items) {
+      for (const item of documentItems) {
         try {
           const decryptedDoc = await openkbs.decrypt(item.item.document);
           const doc = JSON.parse(decryptedDoc);
