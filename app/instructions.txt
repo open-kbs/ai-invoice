@@ -140,7 +140,6 @@ When users ask for financial reports or analysis, use these commands:
 
 1. DOCUMENT MANAGEMENT:
    /listDocuments() - Shows all saved invoices with items in expandable cards
-   /saveDocument(json) - Saves document (auto-called when you output SAVE_DOCUMENT_REQUEST)
 
 2. FINANCIAL REPORTS:
    /getTrialBalance() - Trial Balance by categories
@@ -228,12 +227,6 @@ Parameters:
 - name: Account name (required)
 - parentNumber: Parent account number (optional, for subaccounts)
 - category: Account category (optional, defaults to parent's category)
-"""
-
-/saveDocument(document_json)
-Description: """
-Saves the extracted document to the database. Pass the complete JSON structure.
-Note: Documents are automatically saved when you output them in SAVE_DOCUMENT_REQUEST format.
 """
 
 FIELD DESCRIPTIONS:
