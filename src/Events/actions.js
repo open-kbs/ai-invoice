@@ -385,7 +385,7 @@ export const getActions = (meta) => [
   }],
   
 
-  // Generate Trial Balance (Oborotna Vedomost) grouped by categories
+  // Generate Trial Balance grouped by categories
   [/\/getTrialBalance\(\)/, async (match) => {
     try {
       // Fetch all documents
