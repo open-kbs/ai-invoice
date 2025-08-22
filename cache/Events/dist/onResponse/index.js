@@ -88,7 +88,8 @@ const getOrCreateChartOfAccounts = async () => {
     // Try to fetch existing chart of accounts
     const response = await openkbs.items({
       action: 'fetchItems',
-      itemType: 'chartOfAccounts',
+      field: 'itemId',
+      from: 'chartOfAccounts',
       limit: 1
     });
     
@@ -96,7 +97,8 @@ const getOrCreateChartOfAccounts = async () => {
       // Chart exists, decrypt and parse it
       const encryptedChart = response.items[0].item.chart;
       const decryptedChart = await openkbs.decrypt(encryptedChart);
-      return JSON.parse(decryptedChart);
+      const parsedChart = JSON.parse(decryptedChart);
+      return parsedChart;
     } else {
       // Chart doesn't exist, create default one
       const defaultChart = getDefaultChartOfAccounts();
@@ -118,7 +120,6 @@ const getOrCreateChartOfAccounts = async () => {
       return defaultChart;
     }
   } catch (e) {
-    console.error("Error getting chart of accounts:", e);
     // Return default if there's an error
     return getDefaultChartOfAccounts();
   }
@@ -223,7 +224,7 @@ const saveDocument = async (document, suggestedAccounts, meta) => {
         suggestedAccounts: suggestedAccounts || [],
         result: response,
       },
-      ...meta
+      _meta_actions: []
     };
   } catch (e) {
     console.error("Error saving document:", e);
@@ -334,7 +335,7 @@ const getActions = (meta) => [
       return {
         type: "GET_CHART_FAILED",
         error: e.message || "Failed to retrieve chart of accounts",
-        _meta_actions: []
+        ...meta
       };
     }
   }],
