@@ -924,28 +924,43 @@ export const getActions = (meta) => [
       // Parse the image upload content
       const uploadContent = JSON.parse(match[0]);
       
-      // Extract image URL from the array
-      let imageUrl = "";
+      // Extract all image URLs from the array
+      const imageUrls = [];
       for (const item of uploadContent) {
         if (item.type === "image_url" && item.image_url?.url) {
-          imageUrl = item.image_url.url;
-          break;
+          imageUrls.push(item.image_url.url);
         }
       }
       
-      if (!imageUrl) {
-        throw new Error("No image URL found in upload");
+      if (imageUrls.length === 0) {
+        throw new Error("No image URLs found in upload");
       }
       
-      // Perform OCR
-      const ocr = await openkbs.imageToText(imageUrl);
+      // Perform OCR on all images
+      const ocrResults = [];
+      for (const imageUrl of imageUrls) {
+        try {
+          const ocr = await openkbs.imageToText(imageUrl);
+          ocrResults.push({
+            imageUrl: imageUrl,
+            text: ocr?.results || ""
+          });
+        } catch (ocrError) {
+          console.error(`OCR error for image ${imageUrl}:`, ocrError);
+          ocrResults.push({
+            imageUrl: imageUrl,
+            text: "",
+            error: ocrError.message
+          });
+        }
+      }
       
       return {
         data: {
-          invoiceText: ocr?.results,
-          imageUrl: imageUrl
+          invoiceTexts: ocrResults,
+          imageUrls: imageUrls
         },
-        message: `OCR completed for uploaded image`,
+        message: `OCR completed for ${imageUrls.length} image(s)`,
         ...meta
       };
     } catch (e) {

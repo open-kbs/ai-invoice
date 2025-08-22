@@ -8,6 +8,7 @@ import { IncomeStatement } from "./IncomeStatement";
 import { VATReport } from "./VATReport";
 import { AccountsReport } from "./AccountsReport";
 import { ChartOfAccounts } from "./ChartOfAccounts";
+import { ZoomableImage } from "./ZoomableImage";
 
 const isMobile = window.openkbs.isMobile;
 
@@ -27,31 +28,19 @@ const extractJSONFromContent = (content) => {
   } catch (e) {
     // Try to extract JSON from text
     try {
-      // Look for JSON pattern in content - handle both single objects and code blocks
-      let jsonString = content;
-      let prefix = "";
-      
-      // Check for code block with json
-      const codeBlockMatch = content.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/);
-      if (codeBlockMatch) {
-        jsonString = codeBlockMatch[1];
-        prefix = content.substring(0, content.indexOf(codeBlockMatch[0])).trim();
-      } else {
-        // Look for JSON pattern in content
-        const jsonMatch = content.match(/(\{[\s\S]*\})/);
-        if (jsonMatch) {
-          jsonString = jsonMatch[0];
-          prefix = content.substring(0, content.indexOf(jsonMatch[0])).trim();
-        }
+      // Look for JSON pattern in content - objects or arrays
+      const jsonMatch = content.match(/([\{\[][\s\S]*[\}\]])/);
+      if (jsonMatch) {
+        const jsonString = jsonMatch[0];
+        const prefix = content.substring(0, content.indexOf(jsonMatch[0])).trim();
+        
+        // Parse the JSON
+        const escapedString = escapeNewlines(jsonString);
+        const data = JSON.parse(escapedString);
+        return { data, prefix };
       }
-      
-      // Parse the JSON
-      const escapedString = escapeNewlines(jsonString);
-      const data = JSON.parse(escapedString);
-      return { data, prefix };
     } catch (error) {
       console.error("Error extracting JSON from content:", error);
-      console.log("Content that failed:", content?.substring(0, 200));
     }
   }
   return null;
@@ -68,14 +57,28 @@ const onRenderChatMessage = async (params) => {
   // Continue with the JSON extraction
   const jsonResult = extractJSONFromContent(content);
 
-  if (role === 'user') return; // use default rendering for user messages
+  if (role === 'user' && !jsonResult) return; // use default rendering for user messages
 
   if (jsonResult) {
     const { data, prefix } = jsonResult;
     
-    // Debug logging
-    console.log("Extracted JSON type:", data?.type);
-    console.log("Has data field:", !!data?.data);
+    // Check if this is an array containing image_url (like OCR upload result)
+    if (Array.isArray(data)) {
+      const imageItems = data.filter(item => item.type === "image_url" && item.image_url?.url);
+      if (imageItems.length > 0) {
+        return [
+          prefix && <div style={{ whiteSpace: 'pre-wrap', marginBottom: '10px' }}>{prefix}</div>,
+          ...imageItems.map((imageItem, index) => (
+            <div key={index} style={{ marginBottom: '16px' }}>
+              <ZoomableImage 
+                imageUrl={imageItem.image_url.url} 
+                alt={`Uploaded Invoice ${index + 1}`}
+              />
+            </div>
+          ))
+        ];
+      }
+    }
     
     // Check if this is a SAVE_DOCUMENT_REQUEST
     if (data.type === 'SAVE_DOCUMENT_REQUEST' && data.document) {
