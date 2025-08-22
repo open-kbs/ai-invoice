@@ -293,31 +293,19 @@ Example: Invoice with 100.00 goods + 50.00 services:
 - Debit Rent/Service account: 50.00  
 - Credit Accounts Payable: 150.00
 
-FOR PURCHASES (when YOUR_COMPANY_TAX_ID matches CompanyRecipient.TaxID):
-
-IF YOUR_COMPANY_TAX_ID isVATRegistered: true
+FOR PURCHASES (default scenario - incoming invoices):
 - Goods/Expense accounts (Debit): Base amounts per category without VAT
-- Input VAT (2310) account (Debit): VAT amount only
+- Input VAT (2310) account (Debit): VAT amount only  
 - Accounts Payable (2100) account (Credit): Total amount with VAT
-
-IF YOUR_COMPANY_TAX_ID isVATRegistered: false
-- Goods/Expense accounts (Debit): Total amounts per category including VAT
-- Accounts Payable (2100) account (Credit): Total amount including VAT
 
 CASH PAYMENT CLOSURE (when PaymentType: "2"):
 Add second Accounting object in Accountings array with AccountingDetails:
 - Accounts Payable (2100) account (Debit), Cash (1000) account (Credit): Total amount
 
-FOR SALES (when YOUR_COMPANY_TAX_ID matches CompanySender.TaxID):
-
-IF YOUR_COMPANY_TAX_ID isVATRegistered: true
+FOR SALES (outgoing invoices - rare scenario):
 - Accounts Receivable (1200) account (Debit): Total amount with VAT
 - Sales Revenue (4000) account (Credit): Base amount without VAT
 - Output VAT (2320) account (Credit): VAT amount only
-
-IF YOUR_COMPANY_TAX_ID isVATRegistered: false
-- Accounts Receivable (1200) account (Debit): Total amount including VAT
-- Sales Revenue (4000) account (Credit): Total amount including VAT
 
 DETAILED REPORT DESCRIPTIONS FOR USER QUERIES:
 
