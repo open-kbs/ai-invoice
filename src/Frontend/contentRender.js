@@ -7,6 +7,7 @@ import { TrialBalance } from "./TrialBalance";
 import { IncomeStatement } from "./IncomeStatement";
 import { VATReport } from "./VATReport";
 import { AccountsReport } from "./AccountsReport";
+import { ChartOfAccounts } from "./ChartOfAccounts";
 
 const isMobile = window.openkbs.isMobile;
 
@@ -185,6 +186,14 @@ const onRenderChatMessage = async (params) => {
       return [
         prefix && <div style={{ whiteSpace: 'pre-wrap', marginBottom: '10px' }}>{prefix}</div>,
         <AccountsReport data={data.data} />
+      ];
+    }
+    
+    // Check if this is a CHART_OF_ACCOUNTS response
+    if (data.type === 'CHART_OF_ACCOUNTS' && data.data) {
+      return [
+        prefix && <div style={{ whiteSpace: 'pre-wrap', marginBottom: '10px' }}>{prefix}</div>,
+        <ChartOfAccounts data={data.data} />
       ];
     }
     
