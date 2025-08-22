@@ -47,42 +47,6 @@ __nccwpck_require__.d(__webpack_exports__, {
 });
 
 ;// CONCATENATED MODULE: ./actions.js
-// Helper function to fetch company details from EU VIES API
-const fetchEUCompanyDetails = async (vatNumber) => {
-  try {
-    // Clean VAT number - remove spaces and convert to uppercase
-    const cleanVAT = vatNumber.replace(/\s/g, '').toUpperCase();
-    
-    // Extract country code and number
-    const countryCode = cleanVAT.substring(0, 2);
-    const number = cleanVAT.substring(2);
-    
-    // Use official EU VIES REST API (free, no auth required)
-    const response = await fetch(`https://ec.europa.eu/taxation_customs/vies/rest-api/ms/${countryCode}/vat/${number}`);
-    
-    if (!response.ok) {
-      return null;
-    }
-    
-    const data = await response.json();
-    
-    return {
-      Name: data.name || '',
-      TaxID: number,  // Just the number without country code
-      VATNumber: `${countryCode}${number}`,  // Full VAT with country code
-      isVATRegistered: data.isValid || false,
-      Id: number,
-      Addresses: data.address ? [{
-        Location: data.address
-      }] : [],
-      CompanyType: data.viesApproximate?.companyType || '',
-      OriginalResponse: data  // Keep original for reference
-    };
-  } catch (e) {
-    console.log(`Could not fetch EU company details for ${vatNumber}:`, e.message);
-    return null;
-  }
-};
 
 // Default chart of accounts structure - minimal generic version
 const getDefaultChartOfAccounts = () => {
@@ -454,75 +418,6 @@ const getActions = (meta) => [
     }
   }],
   
-  // Get company details and chart of accounts for invoice processing
-  [/\/getCompanyDetails\("([^"]*)",\s*"([^"]*)"\)/, async (match, event) => {
-    const yourCompanyTaxID = match[1]?.trim();
-    const otherCompanyTaxID = match[2]?.trim();
-
-    if (!yourCompanyTaxID || !otherCompanyTaxID) {
-      return {
-        error: 'Both YOUR_COMPANY Tax ID and other company Tax ID are required',
-        ...meta
-      };
-    }
-    
-    try {
-      // Try to fetch company details from EU VAT API if they look like VAT numbers
-      let yourCompany = null;
-      let otherCompany = null;
-      
-      // Check if the tax IDs look like EU VAT numbers (start with 2 letters)
-      if (/^[A-Z]{2}/i.test(yourCompanyTaxID)) {
-        yourCompany = await fetchEUCompanyDetails(yourCompanyTaxID);
-      }
-      
-      if (/^[A-Z]{2}/i.test(otherCompanyTaxID)) {
-        otherCompany = await fetchEUCompanyDetails(otherCompanyTaxID);
-      }
-      
-      // If not found or not EU VAT numbers, create basic entries
-      if (!yourCompany) {
-        yourCompany = {
-          Name: "Your Company",
-          TaxID: yourCompanyTaxID,
-          VATNumber: yourCompanyTaxID,
-          isVATRegistered: true, // Assume VAT registered by default
-          Id: yourCompanyTaxID,
-          Addresses: []
-        };
-      }
-      
-      if (!otherCompany) {
-        otherCompany = {
-          Name: "Other Company",
-          TaxID: otherCompanyTaxID,
-          VATNumber: otherCompanyTaxID,
-          isVATRegistered: true, // Assume VAT registered by default
-          Id: otherCompanyTaxID,
-          Addresses: []
-        };
-      }
-      
-      // Get chart of accounts from database or create default
-      const chartOfAccounts = await getOrCreateChartOfAccounts();
-      
-      const result = {
-        YourCompany: yourCompany,
-        OtherCompany: otherCompany,
-        ChartOfAccounts: chartOfAccounts
-      };
-
-      return {
-        data: result,
-        ...meta
-      };
-    } catch (e) {
-      return {
-        error: e.message,
-        ...meta
-      };
-    }
-  }],
 
   // Generate Trial Balance (Oborotna Vedomost) grouped by categories
   [/\/getTrialBalance\(\)/, async (match) => {
