@@ -1,9 +1,9 @@
 {
   "userId": "public",
+  "chatVendor": "google",
   "kbDescription": "AI International Invoice Extraction and Accounting Tool",
   "kbTitle": "Invoice Processor",
-  "chatVendor": "anthropic",
-  "model": "claude-sonnet-4-20250514",
+  "model": "gemini-2.5-pro-preview-03-25",
   "inputTools": [],
   "category": "technology",
   "customizationPrompts": [
@@ -53,11 +53,5 @@
         }
       ]
     }
-  },
-  "requiredServices": [
-    {
-      "interface": "text-generation",
-      "type": "main-chat-model"
-    }
-  ]
+  }
 }
