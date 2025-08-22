@@ -8,7 +8,6 @@ import { IncomeStatement } from "./IncomeStatement";
 import { VATReport } from "./VATReport";
 import { AccountsReport } from "./AccountsReport";
 import { ChartOfAccounts } from "./ChartOfAccounts";
-import { ZoomableImage } from "./ZoomableImage";
 
 const isMobile = window.openkbs.isMobile;
 
@@ -61,7 +60,6 @@ const onRenderChatMessage = async (params) => {
 
   if (jsonResult) {
     const { data, prefix } = jsonResult;
-    
     // Check if this is an array containing image_url (like OCR upload result)
     if (Array.isArray(data)) {
       const imageItems = data.filter(item => item.type === "image_url" && item.image_url?.url);
@@ -69,12 +67,17 @@ const onRenderChatMessage = async (params) => {
         return [
           prefix && <div style={{ whiteSpace: 'pre-wrap', marginBottom: '10px' }}>{prefix}</div>,
           ...imageItems.map((imageItem, index) => (
-            <div key={index} style={{ marginBottom: '16px' }}>
-              <ZoomableImage 
-                imageUrl={imageItem.image_url.url} 
-                alt={`Uploaded Invoice ${index + 1}`}
-              />
-            </div>
+            <img 
+              key={index}
+              src={imageItem.image_url.url} 
+              alt={`Uploaded Invoice ${index + 1}`}
+              style={{
+                maxWidth: isMobile ? '100%' : '50%',
+                height: 'auto',
+                display: 'block',
+                marginBottom: '16px'
+              }}
+            />
           ))
         ];
       }
