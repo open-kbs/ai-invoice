@@ -919,7 +919,7 @@ export const getActions = (meta) => [
   }],
   
   // OCR processing for uploaded images
-  [/\[\{"type":"text","text":[\s\S]*?\]/, async (match) => {
+  [/\[[\s\S]*?"image_url"[\s\S]*?\]/, async (match) => {
     try {
       // Parse the image upload content
       const uploadContent = JSON.parse(match[0]);

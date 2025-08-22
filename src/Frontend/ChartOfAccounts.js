@@ -121,8 +121,8 @@ export const ChartOfAccounts = ({ data }) => {
       </Grid>
 
       {/* Categories with Accounts */}
-      {sortedCategories.map(([categoryName, accounts]) => (
-        <Accordion key={categoryName} defaultExpanded sx={{ mb: 2 }}>
+      {sortedCategories.map(([categoryName, accounts], index) => (
+        <Accordion key={categoryName} defaultExpanded={index === sortedCategories.length - 1} sx={{ mb: 2 }}>
           <AccordionSummary
             expandIcon={<ExpandMoreIcon />}
             sx={{ backgroundColor: 'grey.50' }}
