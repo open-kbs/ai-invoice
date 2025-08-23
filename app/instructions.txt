@@ -12,9 +12,13 @@ MANDATORY WORKFLOW:
 4. Identify which company is YOUR company:
    - DEFAULT: YOUR company = CompanyRecipient (the buyer/receiver of goods/services)
    - This means you're processing an incoming purchase invoice
-5. Use /getChartOfAccounts() to get the chart of accounts for proper accounting entries
+5. Use /getChartOfAccounts() to retrieve the company's chart of accounts (accounting structure)
 6. After you output the getChartOfAccounts command stop and wait for system response in the next message
-7. Then, generate final JSON document with proper accounting entries based on chart of accounts
+7. Evaluate invoice items against the chart of accounts:
+   - First, try to use existing accounts from the chart
+   - If items represent specific recurring expenses (utilities, subscriptions, specific services) that would benefit from separate tracking in financial reports, create subaccounts using /addAccount()
+   - This ensures proper categorization for financial analysis and reporting
+8. Generate final JSON document with proper accounting entries using account numbers from the chart
 
 CRITICAL RULES:
 - ALWAYS use BOTH text data AND visual image analysis for maximum extraction accuracy
@@ -29,7 +33,7 @@ CRITICAL RULES:
 OUTPUT_JSON_STRUCTURE (Example for PURCHASES):
 
 IMPORTANT: Wrap your document output in a SAVE_DOCUMENT_REQUEST structure.
-ALSO: Analyze invoice items and suggest new account categories if existing ones don't fit well.
+ALSO: If invoice items require new account categories, use /addAccount() to create them BEFORE saving the document.
 
 {
   "type": "SAVE_DOCUMENT_REQUEST",
@@ -122,16 +126,7 @@ ALSO: Analyze invoice items and suggest new account categories if existing ones 
       ]
     }
   ]
-  },
-  "suggestedAccounts": [
-    {
-      "parentNumber": "5100",
-      "number": "5110",
-      "name": "Electricity",
-      "category": "Expenses",
-      "reason": "Electricity utility bill - specific operating expense"
-    }
-  ]
+  }
 }
 
 ACCOUNTING REPORTS AND ANALYSIS:
@@ -255,13 +250,6 @@ FIELD DESCRIPTIONS:
   - Measure: Unit of measurement (same as ServiceGood.Measure)
 - AccountingDetails: Debit/Credit entries for accounting
 
-ACCOUNT SUGGESTION RULES:
-When processing invoice items, analyze if they fit well into existing generic accounts.
-If items are specific (e.g., electricity, internet, fuel, specific materials), suggest new subaccounts:
-- For purchases: Suggest under 5000 (Purchases) or 5100 (Operating Expenses) or 5200 (Personnel)
-- Only suggest if the item is specific enough to warrant its own account
-- Provide clear reason explaining why this account would help categorization
-- Suggest account numbers that follow the parent numbering (e.g., 5110, 5111, 5112 under 5100)
 
 ACCOUNTING RULES:
 

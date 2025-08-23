@@ -1,7 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import Avatar from "@mui/material/Avatar";
 import { DocumentEditor } from "./DocumentEditor";
-import { AccountSuggestions } from "./Presentational/AccountSuggestions";
 import { DocumentsList } from "./Presentational/DocumentsList";
 import { TrialBalance } from "./Presentational/TrialBalance";
 import { IncomeStatement } from "./Presentational/IncomeStatement";
@@ -64,7 +63,6 @@ const onRenderChatMessage = async (params) => {
     // Check if this is a SAVE_DOCUMENT_REQUEST
     if (data?.type === 'SAVE_DOCUMENT_REQUEST' && data?.document) {
       const document = data.document;
-      const suggestedAccounts = data.suggestedAccounts;
       const imageUrl = document.image || data.image;
       const avatarSize = isMobile ? '48px' : '64px';
 
@@ -119,16 +117,7 @@ const onRenderChatMessage = async (params) => {
         <DocumentEditor
             documentData={document}
             onSave={handleSave}
-        />,
-        suggestedAccounts && suggestedAccounts.length > 0 && (
-            <AccountSuggestions
-                suggestions={suggestedAccounts}
-                RequestChatAPI={RequestChatAPI}
-                messages={messages}
-                kbUserData={kbUserData}
-                generateMsgId={generateMsgId}
-            />
-        )
+        />
       ];
     }
 
