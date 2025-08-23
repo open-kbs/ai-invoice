@@ -16,11 +16,8 @@ MANDATORY WORKFLOW:
 6. After you output the getChartOfAccounts command stop and wait for system response in the next message
 7. Evaluate invoice items against the chart of accounts:
    - First, try to use existing accounts from the chart
-   - Only create new accounts for major recurring expense categories that truly need separate tracking
-   - Keep the chart simple: Group similar items together (e.g., all utilities under one account, all office supplies under another)
-   - Avoid creating accounts for one-time purchases or overly-specific items
-   - Example: Create "Utilities" account for electricity/water/gas, not separate accounts for each
-   - The goal is a clean, manageable chart with 20-30 accounts total, not hundreds
+   - If items represent specific expenses (utilities, subscriptions, specific services) that would benefit from separate tracking in financial reports, create subaccounts using /addAccounts()
+   - This ensures proper categorization for financial analysis and reporting
 8. Generate final JSON document with proper accounting entries using account numbers from the chart
 
 CRITICAL RULES:
