@@ -166,7 +166,7 @@ const saveChartOfAccounts = async (chart) => {
   return true;
 };
 
-const saveDocument = async (document, suggestedAccounts, meta) => {
+const saveDocument = async (document, meta) => {
   if (!document.DocumentId) {
     throw new Error("Document must have a DocumentId field");
   }
@@ -191,7 +191,6 @@ const saveDocument = async (document, suggestedAccounts, meta) => {
       documentId: document.DocumentId,
       itemCount: document.DocumentDetails?.length || 0,
       documentData: document,
-      suggestedAccounts: suggestedAccounts || [],
       result: response,
     },
     _meta_actions: []
@@ -202,13 +201,12 @@ const getActions = (meta) => [
   [/\{\s*"type"\s*:\s*"SAVE_DOCUMENT_REQUEST"[\s\S]*\}/, async (match) => {
     const requestData = openkbs.parseJSONFromText(match[0]);
     const document = requestData.document;
-    const suggestedAccounts = requestData.suggestedAccounts;
     
     if (!document) {
       throw new Error("No document data provided");
     }
     
-    return await saveDocument(document, suggestedAccounts, meta);
+    return await saveDocument(document, meta);
   }],
   
   [/\/addAccount\(([^)]+)\)/, async (match) => {
@@ -248,13 +246,13 @@ const getActions = (meta) => [
         message: `Account ${number} - ${name} added successfully`,
         account: newAccount,
         parentNumber: parentNumber || "root",
-        _meta_actions: []
+        ...meta
       };
     } else {
       return {
         type: "ADD_ACCOUNT_FAILED",
         error: `Parent account ${parentNumber} not found`,
-        _meta_actions: []
+        ...meta
       };
     }
   }],
