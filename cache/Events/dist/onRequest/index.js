@@ -209,52 +209,67 @@ const getActions = (meta) => [
     return await saveDocument(document, meta);
   }],
   
-  [/\/addAccount\(([^)]+)\)/, async (match) => {
+  [/\/addAccounts\(([^)]+)\)/, async (match) => {
     const params = JSON.parse(match[1]);
-    const { parentNumber, number, name, category } = params;
-    
-    if (!number || !name) {
-      return {
-        type: "ADD_ACCOUNT_FAILED",
-        error: "Account number and name are required",
-        _meta_actions: []
-      };
-    }
+    const accountsToAdd = Array.isArray(params) ? params : [params]; // Support both single and multiple accounts
     
     const chart = await getOrCreateChartOfAccounts();
+    const results = [];
+    const added = [];
+    const failed = [];
     
-    const newAccount = {
-      number,
-      name,
-      category: category || "Expenses",
-      subAccounts: []
-    };
-    
-    let added = false;
-    if (parentNumber) {
-      added = addAccountToChart(chart.accounts, parentNumber, newAccount);
-    } else {
-      chart.accounts.push(newAccount);
-      added = true;
-    }
-    
-    if (added) {
-      await saveChartOfAccounts(chart);
+    for (const accountParams of accountsToAdd) {
+      const { parentNumber, number, name, category } = accountParams;
       
-      return {
-        type: "ACCOUNT_ADDED",
-        message: `Account ${number} - ${name} added successfully`,
-        account: newAccount,
-        parentNumber: parentNumber || "root",
-        ...meta
+      if (!number || !name) {
+        failed.push({
+          account: accountParams,
+          error: "Account number and name are required"
+        });
+        continue;
+      }
+      
+      const newAccount = {
+        number,
+        name,
+        category: category || "Expenses",
+        subAccounts: []
       };
-    } else {
-      return {
-        type: "ADD_ACCOUNT_FAILED",
-        error: `Parent account ${parentNumber} not found`,
-        ...meta
-      };
+      
+      let addedSuccess = false;
+      if (parentNumber) {
+        addedSuccess = addAccountToChart(chart.accounts, parentNumber, newAccount);
+        if (!addedSuccess) {
+          failed.push({
+            account: accountParams,
+            error: `Parent account ${parentNumber} not found`
+          });
+        }
+      } else {
+        chart.accounts.push(newAccount);
+        addedSuccess = true;
+      }
+      
+      if (addedSuccess) {
+        added.push({
+          number,
+          name,
+          parentNumber: parentNumber || "root"
+        });
+      }
     }
+    
+    if (added.length > 0) {
+      await saveChartOfAccounts(chart);
+    }
+    
+    return {
+      type: "ACCOUNTS_ADDED",
+      message: `Added ${added.length} account(s) successfully${failed.length > 0 ? `, ${failed.length} failed` : ''}`,
+      added,
+      failed,
+      ...meta
+    };
   }],
   
   [/\/getChartOfAccounts\(\)/, async (match) => {
@@ -455,7 +470,7 @@ const getActions = (meta) => [
           difference: Math.abs(totalDebit - totalCredit)
         },
         documentCount: documentItems.length,
-        generatedAt: new Date().toISOString()
+        generatedAt: new Date().toLocaleString()
       },
       _meta_actions: []
     };
@@ -574,7 +589,7 @@ const getActions = (meta) => [
         netIncome,
         profitMargin: revenue.total > 0 ? (netIncome / revenue.total * 100) : 0,
         documentCount: documentItems.length,
-        generatedAt: new Date().toISOString()
+        generatedAt: new Date().toLocaleString()
       },
       _meta_actions: []
     };
@@ -667,7 +682,7 @@ const getActions = (meta) => [
           inputDocuments: documents.filter(d => d.type === 'Input VAT').length,
           outputDocuments: documents.filter(d => d.type === 'Output VAT').length
         },
-        generatedAt: new Date().toISOString()
+        generatedAt: new Date().toLocaleString()
       },
       _meta_actions: []
     };
@@ -803,7 +818,7 @@ const getActions = (meta) => [
           payables: calculateAging(payablesList),
           receivables: calculateAging(receivablesList)
         },
-        generatedAt: new Date().toISOString()
+        generatedAt: new Date().toLocaleString()
       },
       _meta_actions: []
     };
