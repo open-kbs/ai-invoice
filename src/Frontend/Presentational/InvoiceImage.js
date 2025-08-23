@@ -13,20 +13,13 @@ export const InvoiceImage = ({ imageUrl, alt = "Invoice Image" }) => {
         sx={{ 
           display: 'flex', 
           alignItems: 'center', 
-          gap: 2,
-          padding: 2,
-          border: '1px solid #e0e0e0',
-          borderRadius: 1,
-          backgroundColor: '#f5f5f5',
+          gap: 1,
           cursor: 'pointer',
-          marginBottom: '16px',
-          '&:hover': {
-            backgroundColor: '#eeeeee'
-          }
+          marginBottom: '16px'
         }}
         onClick={() => window.open(imageUrl, '_blank')}
       >
-        <PictureAsPdfIcon sx={{ fontSize: 48, color: '#d32f2f' }} />
+        <PictureAsPdfIcon sx={{ fontSize: 48 }} />
         <Typography variant="body1" sx={{ color: '#1976d2', textDecoration: 'underline' }}>
           Open PDF Document
         </Typography>
