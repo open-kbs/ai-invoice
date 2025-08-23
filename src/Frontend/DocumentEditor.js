@@ -16,64 +16,16 @@ import {
   MenuItem
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import { DocumentDetailsTable } from "./DocumentDetailsTable";
+import { DocumentDetailsTable } from "./Presentational/DocumentDetailsTable";
 
 const isMobile = window.openkbs.isMobile;
 
 export const DocumentEditor = ({ documentData, onSave }) => {
-  const [document, setDocument] = useState(() => {
-    return documentData || {
-      DocumentId: "",
-      DocumentType: "1",
-      TotalAmount: "0.000000",
-      TotalVatAmount: "0.000000",
-      PaymentType: "1",
-      CompanyRecipient: {
-        Name: "",
-        TaxID: "",
-        VATNumber: "",
-        Addresses: [{ Location: "" }],
-        BankAccounts: [{ Name: "", IBAN: "" }]
-      },
-      CompanySender: {
-        Name: "",
-        TaxID: "",
-        VATNumber: "",
-        Addresses: [{ Location: "" }],
-        BankAccounts: [{ Name: "", IBAN: "" }]
-      },
-      DocumentDetails: [],
-      Accountings: [{
-        AccountingDate: new Date().toISOString(),
-        AccountingDetails: [
-          {
-            VatTermId: "7",
-            Direction: "Debit",
-            Amount: "0.000000",
-            AccountNumber: "1200",
-            VatTerm: "7",
-            Description: "Accounts Receivable"
-          },
-          {
-            VatTermId: "7",
-            Direction: "Credit",
-            Amount: "0.000000",
-            AccountNumber: "4000",
-            VatTerm: "7",
-            Description: "Sales Revenue"
-          },
-          {
-            VatTermId: "7",
-            Direction: "Credit",
-            Amount: "0.000000",
-            AccountNumber: "2320",
-            VatTerm: "7",
-            Description: "Output VAT"
-          }
-        ]
-      }]
-    };
-  });
+  if (!documentData) {
+    return null; // Don't render if no data provided
+  }
+  
+  const [document, setDocument] = useState(documentData);
 
   const handleBasicChange = (field, value) => {
     setDocument({
@@ -144,36 +96,10 @@ export const DocumentEditor = ({ documentData, onSave }) => {
     setDocument(prev => ({
       ...prev,
       TotalAmount: totalWithVat.toFixed(6),
-      TotalVatAmount: totalVat.toFixed(6),
-      Accountings: [{
-        ...prev.Accountings[0],
-        AccountingDetails: [
-          {
-            ...prev.Accountings[0].AccountingDetails[0],
-            Amount: totalWithVat.toFixed(6)
-          },
-          {
-            ...prev.Accountings[0].AccountingDetails[1],
-            Amount: totalAmount.toFixed(6)
-          },
-          {
-            ...prev.Accountings[0].AccountingDetails[2],
-            Amount: totalVat.toFixed(6)
-          }
-        ]
-      }]
+      TotalVatAmount: totalVat.toFixed(6)
     }));
   };
 
-  const handleAccountingDateChange = (field, value) => {
-    setDocument({
-      ...document,
-      Accountings: [{
-        ...document.Accountings[0],
-        [field]: value
-      }]
-    });
-  };
 
   const handleSaveClick = () => {
     // Generate DocumentId if not present
@@ -457,123 +383,95 @@ export const DocumentEditor = ({ documentData, onSave }) => {
         </AccordionDetails>
       </Accordion>
 
-      {/* Accounting Dates */}
-      <Accordion>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography variant="h6">Accounting Information</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={4}>
-              <TextField
-                fullWidth
-                label="Accounting Date"
-                type="datetime-local"
-                value={document.Accountings?.[0]?.AccountingDate?.slice(0, 16) || ""}
-                onChange={(e) => handleAccountingDateChange("AccountingDate", e.target.value + ":00")}
-                variant="outlined"
-                size="small"
-                InputLabelProps={{ shrink: true }}
-              />
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <TextField
-                fullWidth
-                label="Due Date"
-                type="datetime-local"
-                value={document.DueDate ? new Date(document.DueDate).toISOString().slice(0, 16) : ""}
-                onChange={(e) => {
-                  const date = new Date(e.target.value);
-                  handleBasicChange("DueDate", date.toISOString().split('T')[0]);
-                }}
-                variant="outlined"
-                size="small"
-                InputLabelProps={{ shrink: true }}
-              />
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <TextField
-                fullWidth
-                label="Term"
-                value={document.Term || ""}
-                onChange={(e) => handleBasicChange("Term", e.target.value)}
-                variant="outlined"
-                size="small"
-                placeholder="e.g., Purchase of goods"
-              />
-            </Grid>
-          </Grid>
-
-          <Typography variant="subtitle1" sx={{ mt: 3, mb: 2 }}>
-            Accounting Entries (Auto-calculated)
-          </Typography>
-          <Grid container spacing={2}>
-            {document.Accountings?.[0]?.AccountingDetails?.map((detail, index) => (
-              <Grid item xs={12} sm={4} key={index}>
-                <Card variant="outlined" sx={{ 
-                  borderColor: detail.Direction === 'Debit' ? 'warning.main' : 'success.main',
-                  borderWidth: 2
-                }}>
-                  <CardContent>
-                    <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-                      <Typography variant="h6" color={detail.Direction === 'Debit' ? 'warning.main' : 'success.main'}>
-                        {detail.AccountNumber}
-                      </Typography>
-                      <Typography variant="caption" sx={{ 
-                        px: 1, 
-                        py: 0.5, 
-                        borderRadius: 1,
-                        backgroundColor: detail.Direction === 'Debit' ? 'warning.light' : 'success.light',
-                        color: 'white'
-                      }}>
-                        {detail.Direction}
-                      </Typography>
-                    </Box>
-                    <Typography variant="body2" color="text.secondary">
-                      {detail.Description || `Account ${detail.AccountNumber}`}
-                    </Typography>
-                    <Typography variant="h6" sx={{ mt: 1 }}>
-                      {parseFloat(detail.Amount).toFixed(2)} {currency}
-                    </Typography>
-                  </CardContent>
-                </Card>
+      {/* Accounting Information - Only show if data exists */}
+      {document.Accountings && document.Accountings.length > 0 && (
+        <Accordion>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <Typography variant="h6">Accounting Information</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  fullWidth
+                  label="Accounting Date"
+                  type="datetime-local"
+                  value={document.Accountings[0]?.AccountingDate?.slice(0, 16) || ""}
+                  variant="outlined"
+                  size="small"
+                  InputLabelProps={{ shrink: true }}
+                  InputProps={{ readOnly: true }}
+                />
               </Grid>
-            ))}
-          </Grid>
-          
-          {/* Account Summary */}
-          <Box sx={{ mt: 3, p: 2, backgroundColor: 'grey.50', borderRadius: 1 }}>
-            <Typography variant="subtitle2" gutterBottom>
-              Account Summary:
-            </Typography>
-            <Box display="flex" flexWrap="wrap" gap={1}>
-              {document.Accountings?.[0]?.AccountingDetails?.map((detail, index) => (
-                <Box 
-                  key={index}
-                  sx={{ 
-                    display: 'flex', 
-                    alignItems: 'center',
-                    gap: 0.5,
-                    px: 1.5,
-                    py: 0.5,
-                    backgroundColor: 'white',
-                    borderRadius: 1,
-                    border: '1px solid',
-                    borderColor: 'divider'
-                  }}
-                >
-                  <Typography variant="body2" fontWeight="bold">
-                    {detail.AccountNumber}:
-                  </Typography>
-                  <Typography variant="body2">
-                    {detail.Description}
-                  </Typography>
-                </Box>
-              ))}
-            </Box>
-          </Box>
-        </AccordionDetails>
-      </Accordion>
+              {document.DueDate && (
+                <Grid item xs={12} sm={4}>
+                  <TextField
+                    fullWidth
+                    label="Due Date"
+                    value={document.DueDate || ""}
+                    variant="outlined"
+                    size="small"
+                    InputProps={{ readOnly: true }}
+                  />
+                </Grid>
+              )}
+              {document.Term && (
+                <Grid item xs={12} sm={4}>
+                  <TextField
+                    fullWidth
+                    label="Term"
+                    value={document.Term || ""}
+                    variant="outlined"
+                    size="small"
+                    InputProps={{ readOnly: true }}
+                  />
+                </Grid>
+              )}
+            </Grid>
+
+            {document.Accountings[0]?.AccountingDetails && document.Accountings[0].AccountingDetails.length > 0 && (
+              <>
+                <Typography variant="subtitle1" sx={{ mt: 3, mb: 2 }}>
+                  Accounting Entries
+                </Typography>
+                <Grid container spacing={2}>
+                  {document.Accountings[0].AccountingDetails.map((detail, index) => (
+                    <Grid item xs={12} sm={4} key={index}>
+                      <Card variant="outlined" sx={{ 
+                        borderColor: detail.Direction === 'Debit' ? 'warning.main' : 'success.main',
+                        borderWidth: 2
+                      }}>
+                        <CardContent>
+                          <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+                            <Typography variant="h6" color={detail.Direction === 'Debit' ? 'warning.main' : 'success.main'}>
+                              {detail.AccountNumber}
+                            </Typography>
+                            <Typography variant="caption" sx={{ 
+                              px: 1, 
+                              py: 0.5, 
+                              borderRadius: 1,
+                              backgroundColor: detail.Direction === 'Debit' ? 'warning.light' : 'success.light',
+                              color: 'white'
+                            }}>
+                              {detail.Direction}
+                            </Typography>
+                          </Box>
+                          <Typography variant="body2" color="text.secondary">
+                            {detail.Description}
+                          </Typography>
+                          <Typography variant="h6" sx={{ mt: 1 }}>
+                            {parseFloat(detail.Amount).toFixed(2)} {currency}
+                          </Typography>
+                        </CardContent>
+                      </Card>
+                    </Grid>
+                  ))}
+                </Grid>
+              </>
+            )}
+          </AccordionDetails>
+        </Accordion>
+      )}
 
       <Box sx={{ mt: 3, mb: 2, display: "flex", justifyContent: "flex-end", gap: 2 }}>
         <Button

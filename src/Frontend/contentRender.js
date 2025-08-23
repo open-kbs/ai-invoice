@@ -1,14 +1,14 @@
 import React, { useEffect, useRef } from "react";
 import Avatar from "@mui/material/Avatar";
 import { DocumentEditor } from "./DocumentEditor";
-import { AccountSuggestions } from "./AccountSuggestions";
-import { DocumentsList } from "./DocumentsList";
-import { TrialBalance } from "./TrialBalance";
-import { IncomeStatement } from "./IncomeStatement";
-import { VATReport } from "./VATReport";
-import { AccountsReport } from "./AccountsReport";
-import { ChartOfAccounts } from "./ChartOfAccounts";
-import { InvoiceImage } from "./InvoiceImage";
+import { AccountSuggestions } from "./Presentational/AccountSuggestions";
+import { DocumentsList } from "./Presentational/DocumentsList";
+import { TrialBalance } from "./Presentational/TrialBalance";
+import { IncomeStatement } from "./Presentational/IncomeStatement";
+import { VATReport } from "./Presentational/VATReport";
+import { AccountsReport } from "./Presentational/AccountsReport";
+import { ChartOfAccounts } from "./Presentational/ChartOfAccounts";
+import { InvoiceImage } from "./Presentational/InvoiceImage";
 
 const isMobile = window.openkbs.isMobile;
 
