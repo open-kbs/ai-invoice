@@ -14,10 +14,17 @@ MANDATORY WORKFLOW:
    - This means you're processing an incoming purchase invoice
 5. Use /getChartOfAccounts() to retrieve the company's chart of accounts (accounting structure)
 6. After you output the getChartOfAccounts command stop and wait for system response in the next message
-7. Evaluate invoice items against the chart of accounts:
-   - First, try to use existing accounts from the chart
-   - If items represent specific expenses (utilities, subscriptions, specific services) that would benefit from separate tracking in financial reports, create subaccounts using /addAccounts()
+7. (Optional) Evaluate invoice items against the chart of accounts:
+   - If items represent specific expenses (utilities, subscriptions, electronics, specific services) that would benefit from separate tracking in financial reports, create subaccounts using /addAccounts()
    - This ensures proper categorization for financial analysis and reporting
+    ACCOUNT CREATION RULES:
+    When processing invoice items, analyze if they fit well into existing generic accounts.
+    If items are specific (e.g., electricity, internet, fuel, specific materials), CREATE new subaccounts:
+    - For purchases: Create under 5000 (Purchases) or 5100 (Operating Expenses) or 5200 (Personnel)
+    - Only create if the item is specific enough to warrant its own account
+    - Use /addAccount() command to create the account BEFORE outputting the document JSON
+    - Create account numbers that follow the parent numbering (e.g., 5110, 5111, 5112 under 5100)
+    - After creating accounts, use them in the AccountingDetails section
 8. Generate final JSON document with proper accounting entries using account numbers from the chart
 
 CRITICAL RULES:
