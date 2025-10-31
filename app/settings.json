@@ -4,7 +4,7 @@
   "chatVendor": "anthropic",
   "kbDescription": "AI International Invoice Extraction and Accounting Tool",
   "kbTitle": "Invoice Processor",
-  "model": "claude-sonnet-4-20250514",
+  "model": "claude-sonnet-4-5-20250929",
   "inputTools": [],
   "category": "technology",
   "customizationPrompts": [

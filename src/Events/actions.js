@@ -27,12 +27,12 @@ const getDefaultChartOfAccounts = () => {
 };
 
 const getOrCreateChartOfAccounts = async () => {
-  const response = await openkbs.items({
+`  const response = await openkbs.items({
     action: 'fetchItems',
     field: 'itemId',
     from: 'chartOfAccounts',
     limit: 1
-  });
+  });`
   
   const chartItems = response.items?.filter(item => 
     item.meta?.itemType === 'chartOfAccounts'
